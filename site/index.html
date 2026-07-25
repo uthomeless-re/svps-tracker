@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shadowverse Premier Series 26-27 選手データトラッカー</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
+<style>
+  :root { color-scheme: dark; }
+  body { font-family: "Noto Sans JP", system-ui, sans-serif; background: #14161c; color: #eee; margin: 0; padding: 24px; }
+  h1 { font-size: 20px; margin: 0 0 4px; }
+  .sub { color: #999; font-size: 13px; margin-bottom: 20px; }
+  .panel { background: #1d2029; border-radius: 10px; padding: 16px; margin-bottom: 16px; }
+  .controls { display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-start; }
+  .control-group { display: flex; flex-direction: column; gap: 6px; }
+  .control-group label { font-size: 12px; color: #aaa; }
+  select, input[type=text] { background: #262a36; color: #eee; border: 1px solid #3a3f4d; border-radius: 6px; padding: 6px 8px; font-size: 13px; }
+  .player-list { display: flex; flex-wrap: wrap; gap: 6px; max-width: 640px; max-height: 140px; overflow-y: auto; }
+  .player-chip { font-size: 12px; padding: 4px 8px; border-radius: 999px; border: 1px solid #3a3f4d; cursor: pointer; user-select: none; }
+  .player-chip.active { background: #4c7cf0; border-color: #4c7cf0; color: #fff; }
+  canvas { max-height: 480px; }
+  .status { font-size: 12px; color: #888; margin-top: 8px; }
+  .team-badge { display:inline-block; font-size:10px; padding:1px 5px; border-radius:4px; background:#333; margin-right:4px; }
+</style>
+</head>
+<body>
+  <h1>Shadowverse Premier Series 26-27 選手データトラッカー</h1>
+  <div class="sub" id="lastUpdated">読み込み中...</div>
+
+  <div class="panel controls">
+    <div class="control-group">
+      <label>表示単位</label>
+      <select id="unitSelect">
+        <option value="player">個人別</option>
+        <option value="team">チーム別（合算）</option>
+      </select>
+    </div>
+    <div class="control-group">
+      <label>指標</label>
+      <select id="metricSelect"></select>
+    </div>
+    <div class="control-group" style="flex:1; min-width:280px;">
+      <label>選手 / チーム（クリックで選択切替）</label>
+      <div class="player-list" id="playerList"></div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <canvas id="chart"></canvas>
+    <div class="status" id="status"></div>
+  </div>
+
+<script>
+const DATA_URL = "data/history.csv";
+const PLAYERS_URL = "data/players.csv";
+
+function parseCSV(text) {
+  const lines = text.replace(/\r/g, "").split("\n").filter(l => l.length > 0);
+  const headers = lines[0].split(",");
+  return lines.slice(1).map(line => {
+    const cols = line.split(",");
+    const row = {};
+    headers.forEach((h, i) => row[h] = cols[i]);
+    return row;
+  });
+}
+
+const COLORS = ["#4c7cf0","#f0704c","#4cf0a0","#f0d24c","#c34cf0","#4cd8f0","#f04c8e","#8ef04c","#f0a94c","#7c4cf0"];
+
+let history = [];
+let players = [];
+let selected = new Set();
+let chart = null;
+
+async function boot() {
+  const [histText, playersText] = await Promise.all([
+    fetch(DATA_URL).then(r => r.ok ? r.text() : Promise.reject(new Error(`history.csv fetch failed: ${r.status}`))),
+    fetch(PLAYERS_URL).then(r => r.ok ? r.text() : Promise.reject(new Error(`players.csv fetch failed: ${r.status}`))),
+  ]).catch(err => {
+    document.getElementById("status").textContent = "データ読み込みエラー: " + err.message + "（まだ一度もデータ更新が走っていない可能性があります）";
+    throw err;
+  });
+
+  history = parseCSV(histText);
+  players = parseCSV(playersText);
+
+  const dates = history.map(r => r.date).sort();
+  document.getElementById("lastUpdated").textContent = dates.length
+    ? `最終更新日（データ内の最新日付）: ${dates[dates.length - 1]} / 総行数: ${history.length}`
+    : "データがまだありません";
+
+  const metrics = [...new Set(history.map(r => r.metric))].sort();
+  const metricSelect = document.getElementById("metricSelect");
+  metricSelect.innerHTML = metrics.map(m => `<option value="${m}">${m}</option>`).join("");
+  // followersをデフォルト表示（存在すれば）
+  if (metrics.includes("followers")) metricSelect.value = "followers";
+
+  renderPlayerList();
+  metricSelect.addEventListener("change", renderChart);
+  document.getElementById("unitSelect").addEventListener("change", () => { renderPlayerList(); renderChart(); });
+
+  renderChart();
+}
+
+function renderPlayerList() {
+  const unit = document.getElementById("unitSelect").value;
+  const list = document.getElementById("playerList");
+  selected.clear();
+
+  if (unit === "player") {
+    list.innerHTML = players.map(p =>
+      `<span class="player-chip" data-key="${p.player_name}"><span class="team-badge">${p.team_tag}</span>${p.player_name}</span>`
+    ).join("");
+  } else {
+    const teams = [...new Set(players.map(p => p.team_tag))];
+    list.innerHTML = teams.map(t => `<span class="player-chip" data-key="${t}">${t}</span>`).join("");
+  }
+
+  list.querySelectorAll(".player-chip").forEach(chip => {
+    chip.addEventListener("click", () => {
+      const key = chip.dataset.key;
+      if (selected.has(key)) { selected.delete(key); chip.classList.remove("active"); }
+      else { selected.add(key); chip.classList.add("active"); }
+      renderChart();
+    });
+  });
+
+  // 初期状態: 個人別なら上位5人、チーム別なら全チームを選択
+  if (unit === "player") {
+    players.slice(0, 5).forEach(p => selected.add(p.player_name));
+  } else {
+    [...new Set(players.map(p => p.team_tag))].forEach(t => selected.add(t));
+  }
+  list.querySelectorAll(".player-chip").forEach(chip => {
+    if (selected.has(chip.dataset.key)) chip.classList.add("active");
+  });
+}
+
+function renderChart() {
+  const unit = document.getElementById("unitSelect").value;
+  const metric = document.getElementById("metricSelect").value;
+  const rows = history.filter(r => r.metric === metric);
+
+  const dates = [...new Set(rows.map(r => r.date))].sort();
+
+  let datasets = [];
+  if (unit === "player") {
+    let i = 0;
+    for (const name of selected) {
+      const playerRows = rows.filter(r => r.player_name === name);
+      const byDate = {};
+      playerRows.forEach(r => { byDate[r.date] = parseFloat(r.value); });
+      datasets.push({
+        label: name,
+        data: dates.map(d => byDate[d] ?? null),
+        borderColor: COLORS[i % COLORS.length],
+        backgroundColor: COLORS[i % COLORS.length],
+        spanGaps: true,
+        tension: 0.2,
+      });
+      i++;
+    }
+  } else {
+    let i = 0;
+    for (const tag of selected) {
+      const teamRows = rows.filter(r => r.team_tag === tag);
+      const byDate = {};
+      teamRows.forEach(r => {
+        const v = parseFloat(r.value);
+        if (!isNaN(v)) byDate[r.date] = (byDate[r.date] || 0) + v;
+      });
+      datasets.push({
+        label: tag,
+        data: dates.map(d => byDate[d] ?? null),
+        borderColor: COLORS[i % COLORS.length],
+        backgroundColor: COLORS[i % COLORS.length],
+        spanGaps: true,
+        tension: 0.2,
+      });
+      i++;
+    }
+  }
+
+  if (chart) chart.destroy();
+  chart = new Chart(document.getElementById("chart"), {
+    type: "line",
+    data: { labels: dates, datasets },
+    options: {
+      responsive: true,
+      plugins: { legend: { labels: { color: "#eee" } } },
+      scales: {
+        x: { ticks: { color: "#aaa" }, grid: { color: "#2a2e3a" } },
+        y: { ticks: { color: "#aaa" }, grid: { color: "#2a2e3a" } },
+      },
+    },
+  });
+
+  document.getElementById("status").textContent = `${dates.length}日分のデータ / ${datasets.length}系列表示中`;
+}
+
+boot();
+</script>
+</body>
+</html>
