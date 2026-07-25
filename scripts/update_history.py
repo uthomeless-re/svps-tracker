@@ -15,6 +15,7 @@ metric一覧:
     cr_top100_count       : 順位100位以内に入った回数（同上）
     ps_win                : PS公式戦での勝敗（1=勝ち/0=負け、periodは節・ラウンドのラベル）
     ps_point              : PS公式戦で獲得したポイント（同上）
+    youtube_subscribers    : YouTubeチャンネル登録者数（各選手のYouTubeチャンネル, periodは"current"）
 
 同じ(date, team_tag, player_name, metric, period)の組み合わせが既に存在する場合は上書きする
 （1日に複数回スクリプトを実行しても重複行にならないようにするため）。
@@ -110,6 +111,22 @@ def rows_from_svlabo(snapshot):
     return rows
 
 
+def rows_from_youtube(snapshot):
+    rows = []
+    for r in snapshot or []:
+        rows.append(
+            {
+                "date": r["date"],
+                "team_tag": r["team_tag"],
+                "player_name": r["player_name"],
+                "metric": "youtube_subscribers",
+                "period": "current",
+                "value": r["value"],
+            }
+        )
+    return rows
+
+
 def rows_from_ps_results(snapshot, name_index):
     rows = []
     for r in snapshot or []:
@@ -164,11 +181,13 @@ def main():
     reference_snap = latest_snapshot("reference", date_str)
     svlabo_snap = latest_snapshot("svlabo", date_str)
     ps_snap = latest_snapshot("ps_results", date_str)
+    youtube_snap = latest_snapshot("youtube", date_str)
 
     new_rows = []
     new_rows += rows_from_reference(reference_snap, name_index)
     new_rows += rows_from_svlabo(svlabo_snap)
     new_rows += rows_from_ps_results(ps_snap, name_index)
+    new_rows += rows_from_youtube(youtube_snap)
 
     print(f"[update_history] {len(new_rows)} new rows from today's snapshots")
     if not new_rows:

@@ -1,7 +1,8 @@
 # Shadowverse Premier Series 26-27 選手データトラッカー
 
-Xフォロワー数・配信時間・視聴時間・動画本数・PS戦績を毎日自動取得し、
-GitHub Pagesで折れ線グラフとして公開するためのリポジトリ一式です。
+Xフォロワー数・YouTube登録者数・配信時間・視聴時間・動画本数・PS戦績を毎日自動取得し、
+GitHub Pagesで折れ線グラフとして公開するためのリポジトリ一式です（`site/index.html` がChart.jsで
+history.csvを読み込んで折れ線グラフを描画する部分で、単にデータを溜めるだけでなく表示まで一体になっています）。
 
 ランクマッチ最高順位（svlabo.jp由来）は自動取得から外し、手動運用にしています
 （理由は「なぜsvlabo.jpだけ手動にしたか」を参照）。
@@ -15,12 +16,15 @@ svps-tracker/
 │   ├── common.py            共通処理（選手マスタ読み込み、CSV書き出しなど）
 │   ├── scrape_reference.py  shadowverse-reference.com から フォロワー数・配信関連 を取得（毎日自動）
 │   ├── scrape_ps_results.py ps.shadowverse-wb.com から PS戦績（個人） を取得（毎日自動）
+│   ├── scrape_youtube.py    各選手のYouTubeチャンネルページから 登録者数 を取得（毎日自動）
 │   ├── scrape_svlabo.py     svlabo.jp から ランクマッチ最高順位・レート を取得（★自動実行からは除外。手動で使う用に残してあるだけ）
 │   ├── update_history.py    上記のスナップショットを data/history.csv に統合
 │   └── requirements.txt
 ├── data/
 │   ├── players.csv          選手マスタ（2026ps-fixedのteams.jsonから抽出、8チーム37名）
 │   ├── history.csv          蓄積される日次データ（ロング形式）
+│   ├── svlabo_leaderboards.csv  svlabo.jpの全ユーザー分を一括取得した手動作業の成果物
+│   │                             （period, class, rank, team_tag, player_name, rating の列。history.csvとは別管理・自動更新はされない）
 │   └── snapshots/           日次の生スクレイピング結果（デバッグ用、実行のたびに増える）
 └── site/
     └── index.html           表示用ページ（Chart.js、個人別/チーム別・指標切替）
@@ -80,6 +84,17 @@ svlabo.jp（ランクマッチ最高順位）は当初、毎日自動取得→�
   取得した生テキストを元に、「BATTLE Nトークンの前後を選手名/クラス/勝敗/獲得ポイントとして
   読み取る」ロジックに書き換え済みです（`parse_battles()`）。「チームバトル」という
   個人に紐づかない対戦枠は成績から除外しています。
+- **YouTube登録者数（scrape_youtube.py）**: 各選手のYouTubeチャンネルの `/about` ページのHTMLに
+  埋め込まれたJSON文字列（`"subscriberCountText":"チャンネル登録者数 8010人"`）を正規表現で
+  抜き出しています。ブラウザで2チャンネル分実際に確認済みですが、**GitHub Actions上での動作は
+  まだ未確認**です。US等のデータセンターIPからのアクセスだとGoogleの「Cookieに関する選択」
+  同意画面が挟まる可能性があり、その場合は0件になります（念のためCONSENT cookieを事前設定して
+  回避を試みてはいます）。0件になった場合は他のスクリプトと同様、Actionsのログ
+  （`data/snapshots/youtube_debug_*.json`）を見て原因調査してください。
+  また、players.csvのyoutube_urlが空の選手（Mishadow51, monakawan, 山田レクイエム, Chappy,
+  Stylish_deko）は対象外です。
+  このサイト自体には登録者数の推移データはなく「現在値」しか取れないため、Xフォロワー数と同様、
+  このスクリプトを動かし始めた日からhistory.csvに蓄積されていきます。
 - **開発環境での制約**: このリポジトリのコードは、Claudeの実行サンドボックス環境ではネットワーク制限により
   Playwrightのブラウザバイナリをダウンロードできず、実際にブラウザを起動しての動作確認はできません。
   そのため、GitHub Actions上で実際に取得された生ログ（タイムスタンプ付きログファイル）を
@@ -95,7 +110,7 @@ svlabo.jp（ランクマッチ最高順位）は当初、毎日自動取得→�
 | date | 取得日（JST） |
 | team_tag | チーム略称（CR/ZETA/DFM/VRL/MRG/RC/RDL/LVH） |
 | player_name | 選手名（players.csv基準） |
-| metric | 指標名（followers, stream_duration, ps_win など。svlabo.jpを手動で取り込んだ場合は cr_rank_エルフ 等も入る） |
+| metric | 指標名（followers, youtube_subscribers, stream_duration, ps_win など。svlabo.jpを手動で取り込んだ場合は cr_rank_エルフ 等も入る） |
 | period | 期間キー（current, jul_early_2026, cumulative_to_date, 節ラベルなど） |
 | value | 数値 |
 
