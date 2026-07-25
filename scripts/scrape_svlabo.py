@@ -89,15 +89,24 @@ def scrape():
             "Object.defineProperty(navigator, 'webdriver', {get: () => undefined});"
         )
 
-        # トップページ経由でアクセスすることで、深いURLへのいきなりのアクセスを避ける
-        page.goto("https://svlabo.jp/", wait_until="networkidle")
-        page.wait_for_timeout(1000)
-        page.goto(URL, wait_until="networkidle")
+        # FC2ブログは広告・アクセス解析タグが常時通信し続けるため、"networkidle"を待つと
+        # いつまで経ってもネットワークが静かにならず30秒でタイムアウトすることがあった。
+        # "domcontentloaded"（DOM構築完了）まで待てば十分なので、以降はこちらを使う。
+
+        # トップページ経由でアクセスすることで、深いURLへのいきなりのアクセスを避ける。
+        # ここはあくまで「人間らしい振る舞い」の演出なので、失敗しても本番の取得は続行する。
+        try:
+            page.goto("https://svlabo.jp/", wait_until="domcontentloaded", timeout=45000)
+            page.wait_for_timeout(1500)
+        except Exception as e:
+            print(f"[svlabo] top page visit failed (continuing anyway): {e}", file=sys.stderr)
+
+        page.goto(URL, wait_until="domcontentloaded", timeout=45000)
 
         if REJECTED_MARKER in page.inner_text("body"):
             print("[svlabo] blocked by FC2's bot detection, retrying once after a pause...", file=sys.stderr)
             page.wait_for_timeout(5000)
-            page.goto(URL, wait_until="networkidle")
+            page.goto(URL, wait_until="domcontentloaded", timeout=45000)
 
         # FC2ブログ側のウィジェットがnetworkidle後もJSで描画を続けるケースに備えて、
         # "｜"（選手行の区切り文字）が出現するまで少し待つ。出なければタイムアウトして先に進む。
