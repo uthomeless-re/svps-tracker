@@ -64,11 +64,22 @@ def parse_detail(detail_text: str):
 def scrape():
     with sync_playwright() as p:
         browser = p.chromium.launch()
-        page = browser.new_page(locale="ja-JP")
+        page = browser.new_page(locale="ja-JP", viewport={"width": 1400, "height": 2000})
         page.goto(URL, wait_until="networkidle")
-        page.wait_for_timeout(1500)
+        # FC2ブログ側のウィジェットがnetworkidle後もJSで描画を続けるケースに備えて、
+        # "｜"（選手行の区切り文字）が出現するまで少し待つ。出なければタイムアウトして先に進む。
+        try:
+            page.wait_for_selector("text=｜", timeout=15000)
+        except Exception as e:
+            print(f"[svlabo] wait_for_selector('｜') timed out: {e}", file=sys.stderr)
+        page.wait_for_timeout(2000)
         text = page.inner_text("body")
         browser.close()
+
+    print(f"[svlabo] raw text length={len(text)}")
+    print("[svlabo] --- raw text (first 800 chars) ---")
+    print(text[:800])
+    print("[svlabo] --- end raw text sample ---")
 
     players = load_players()
     name_index = build_name_index(players)
@@ -92,12 +103,12 @@ def scrape():
         base["breakdown"] = parse_detail(detail)
         rows.append(base)
 
-    return rows
+    return rows, text
 
 
 def main():
     date_str = today_str()
-    rows = scrape()
+    rows, raw_text = scrape()
     for r in rows:
         r["date"] = date_str
         r["source"] = "svlabo.jp"
@@ -107,6 +118,8 @@ def main():
         print(f"[svlabo] WARNING: {len(unmatched)} names did not match players.csv: {unmatched}", file=sys.stderr)
 
     save_snapshot("svlabo", rows)
+    # パースが0件でも原因調査できるよう、生テキストを常に保存する（うまくいったら消してOK）
+    save_snapshot("svlabo_debug", [{"text_len": len(raw_text), "text": raw_text}])
     return rows
 
 

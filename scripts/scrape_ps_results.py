@@ -125,6 +125,20 @@ def main():
     save_snapshot("ps_results", rows)
     # パース失敗時の調査用に、モーダルの生テキストも別途保存する
     save_snapshot("ps_results_raw_modals", [{"index": i, "text": t} for i, t in enumerate(raw_modals)])
+    # ファイルを開かなくても確認できるよう、最初のモーダルの生テキストをログにも直接出す。
+    # body全体を取っているため冒頭はナビ等の可能性が高く、"BATTLE"や"WIN"という文字列の
+    # 周辺だけを切り出して表示する（モーダル本体がどこにあってもヒットしやすいように）。
+    if raw_modals:
+        t = raw_modals[0]
+        idx = t.find("BATTLE")
+        if idx == -1:
+            idx = t.find("WIN")
+        if idx == -1:
+            idx = 0
+        start = max(0, idx - 300)
+        print(f"[ps_results] --- first modal raw text around 'BATTLE/WIN' (total length={len(t)}) ---")
+        print(t[start:start + 1500])
+        print("[ps_results] --- end raw text sample ---")
     return rows
 
 

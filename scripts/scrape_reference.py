@@ -34,7 +34,7 @@ PERIOD_METRICS = ["stream_duration", "watch_time", "video_view_count", "video_up
 #   "1\nRC\nぱらちゃん\n\n34,703\n人\n"            (フォロワー数)
 # rank, team_tag, player_name, (空行), value, unit の並びで出現する。
 ROW_RE = re.compile(
-    r"(?P<rank>\d+T?)\n(?P<tag>[A-Za-z]{2,5})\n(?P<name>[^\n]+)\n\n(?P<value>[\d,]+(?:\.\d+)?)\n(?P<unit>[^\n]{1,4})"
+    r"(?P<rank>\d+T?)\n+(?P<tag>[A-Za-z]{2,5})\n+(?P<name>[^\n]+?)\n+(?P<value>[\d,]+(?:\.\d+)?)\n+(?P<unit>[^\n]{1,4})"
 )
 
 
@@ -50,11 +50,16 @@ def get_period_options(page, metric):
     return [v for v in values if v]
 
 
-def scrape_metric_period(page, metric, period):
+def scrape_metric_period(page, metric, period, debug_texts):
     url = f"{BASE}?type={metric}&period={period}&unit=player"
     page.goto(url, wait_until="networkidle")
-    page.wait_for_timeout(800)
-    text = page.inner_text("main")
+    page.wait_for_timeout(1500)
+    # "main" が無い/空のケースに備えてbody全体も試す
+    text = page.inner_text("main") if page.query_selector("main") else ""
+    if len(text.strip()) < 20:
+        text = page.inner_text("body")
+    debug_texts.append({"metric": metric, "period": period, "text_len": len(text), "text": text})
+
     rows = []
     for m in ROW_RE.finditer(text):
         rows.append(
@@ -74,21 +79,22 @@ def scrape_metric_period(page, metric, period):
 def main():
     date_str = today_str()
     all_rows = []
+    debug_texts = []
     with sync_playwright() as p:
         browser = p.chromium.launch()
         page = browser.new_page(locale="ja-JP")
 
         for metric in CURRENT_ONLY_METRICS:
-            rows = scrape_metric_period(page, metric, "current")
-            print(f"[reference] {metric}/current: {len(rows)} rows")
+            rows = scrape_metric_period(page, metric, "current", debug_texts)
+            print(f"[reference] {metric}/current: {len(rows)} rows (raw text length={debug_texts[-1]['text_len']})")
             all_rows.extend(rows)
 
         for metric in PERIOD_METRICS:
             periods = get_period_options(page, metric)
             print(f"[reference] {metric}: periods = {periods}")
             for period in periods:
-                rows = scrape_metric_period(page, metric, period)
-                print(f"[reference] {metric}/{period}: {len(rows)} rows")
+                rows = scrape_metric_period(page, metric, period, debug_texts)
+                print(f"[reference] {metric}/{period}: {len(rows)} rows (raw text length={debug_texts[-1]['text_len']})")
                 all_rows.extend(rows)
 
         browser.close()
@@ -98,6 +104,13 @@ def main():
         r["source"] = "shadowverse-reference.com"
 
     save_snapshot("reference", all_rows)
+    # パースが0件でも原因調査できるよう、生テキストを常に保存する（うまくいったら消してOK）
+    save_snapshot("reference_debug", debug_texts)
+    # 一番最初のページの生テキスト冒頭をログにも直接出す（ファイルを開かなくても確認できるように）
+    if debug_texts:
+        print("[reference] --- first page raw text (first 800 chars) ---")
+        print(debug_texts[0]["text"][:800])
+        print("[reference] --- end raw text sample ---")
     return all_rows
 
 
