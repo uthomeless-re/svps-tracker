@@ -7,12 +7,23 @@
 このデータはJS実行後に描画される（生HTMLには入っていない）ため、Playwrightでのクリック操作が必須。
 
 出力: data/snapshots/ps_results_{today}.json に生データを保存し、
-      history.csv用の行リスト [{date, round, team1, team2, player_name, class, result, point}, ...] を返す。
+      history.csv用の行リスト [{date, round, player_name, class, result, point}, ...] を返す。
 
-注意: モーダル内テキストの正確なレイアウトは実ブラウザでの目視確認（スクリーンショット）でしか
-確認できておらず、inner_text()の改行パターンまでは検証できていない。
-初回実行時は必ず data/snapshots/ps_results_*.json を確認し、
-parse_battle_text() の正規表現がズレていないか確認すること（README参照）。
+--- パース方式について ---
+実際にGitHub Actions上で取得した生テキスト（data/snapshots/ps_results_raw_modals_*.json）を元に、
+モーダル内の1バトル分は以下のような「空行区切りの1行ずつのトークン列」になることを確認した:
+
+    ふえた / ロイヤル / +1pt / WIN / BATTLE 1 / VS / LOSE / CQCQ / ウィッチ
+    Winter / エルフ / LOSE / BATTLE 3 / VS / +1pt / WIN / ヘイム / ビショップ
+
+つまり「BATTLE N」トークンの直前が左側選手の結果(WIN/LOSE)、勝った側だけ結果の直前に"+1pt"が入る。
+「BATTLE N」の直後は"VS"、その次が右側選手の(+1pt/)結果・名前・クラスの順。
+この規則をparse_battles()でトークン列として解析している（正規表現の1発マッチではなく状態ベース）。
+チームバトル枠（個人ではなく「チームバトル」という名前で選手名が入らない対戦）も存在するため、
+player_nameが"チームバトル"の行は個人成績としては除外している。
+
+注意: 非公式サイトではなく公式サイトだが、モーダルのUI実装が変わればトークンの並びが崩れる可能性がある。
+取得失敗時は data/snapshots/ps_results_raw_modals_*.json とログの生テキストで原因調査すること。
 """
 import re
 import sys
@@ -23,42 +34,67 @@ from common import today_str, save_snapshot
 
 URL = "https://ps.shadowverse-wb.com/26-27/schedule-results/"
 
-# 1バトル分: 選手名 → クラス → (+N pt) → BATTLE n → WIN/LOSE → VS → WIN/LOSE → 選手名 → クラス
-# 対戦カードのテキストは概ね「左選手ブロック」「中央(pt/BATTLE/WIN-VS-LOSE)」「右選手ブロック」の順。
-# サイト構造が変わった場合はここを要調整（生スナップショットJSONを見て再調整すること）。
-BATTLE_RE = re.compile(
-    r"(?P<p1>[^\n]+)\n[^\n]*\n(?P<p1_class>[^\n]+)\n\+?(?P<point>\d+)pt\nBATTLE\s*\d+\n"
-    r"(?P<p1_result>WIN|LOSE)\nVS\n(?P<p2_result>WIN|LOSE)\n"
-    r"(?P<p2>[^\n]+)\n[^\n]*\n(?P<p2_class>[^\n]+)",
-)
+TEAM_BATTLE_LABEL = "チームバトル"
 
 
-def parse_battle_text(modal_text, round_label, team1, team2):
+def tokenize(text: str):
+    return [line.strip() for line in text.split("\n") if line.strip()]
+
+
+def parse_battles(modal_text: str, round_label: str):
+    """モーダルの生テキストから、BATTLE N トークンを起点に選手ごとの勝敗を復元する。"""
+    # ページ末尾の共通フッター（利用規約など）以降は無関係なので切り捨てる
+    cut = modal_text.find("INTERNATIONAL")
+    region = modal_text[:cut] if cut != -1 else modal_text
+    lines = tokenize(region)
+
     battles = []
-    for m in BATTLE_RE.finditer(modal_text):
-        p1_win = m.group("p1_result") == "WIN"
-        battles.append(
-            {
-                "round": round_label,
-                "team1": team1,
-                "team2": team2,
-                "player_name": m.group("p1").strip(),
-                "class": m.group("p1_class").strip(),
-                "result": "WIN" if p1_win else "LOSE",
-                "point": int(m.group("point")) if p1_win else 0,
-            }
-        )
-        battles.append(
-            {
-                "round": round_label,
-                "team1": team1,
-                "team2": team2,
-                "player_name": m.group("p2").strip(),
-                "class": m.group("p2_class").strip(),
-                "result": "LOSE" if p1_win else "WIN",
-                "point": 0 if p1_win else int(m.group("point")),
-            }
-        )
+    for i, line in enumerate(lines):
+        bm = re.match(r"^BATTLE\s*(\d+)$", line)
+        if not bm:
+            continue
+
+        # --- 左側選手（BATTLE Nの直前） ---
+        if i - 1 < 0:
+            continue
+        result1 = lines[i - 1]
+        if result1 == "WIN":
+            if i - 4 < 0:
+                continue
+            class1, name1 = lines[i - 3], lines[i - 4]
+        elif result1 == "LOSE":
+            if i - 3 < 0:
+                continue
+            class1, name1 = lines[i - 2], lines[i - 3]
+        else:
+            continue  # 想定外のレイアウト。スキップして次を試す
+
+        # --- 右側選手（BATTLE N の次はVS、その後ろ） ---
+        if i + 1 >= len(lines) or lines[i + 1] != "VS":
+            continue
+        j = i + 2
+        if j < len(lines) and lines[j] == "+1pt":
+            if j + 3 >= len(lines):
+                continue
+            result2, name2, class2 = lines[j + 1], lines[j + 2], lines[j + 3]
+        else:
+            if j + 2 >= len(lines):
+                continue
+            result2, name2, class2 = lines[j], lines[j + 1], lines[j + 2]
+
+        for name, cls, result in ((name1, class1, result1), (name2, class2, result2)):
+            if name == TEAM_BATTLE_LABEL:
+                continue  # 個人成績ではないので除外（README参照）
+            battles.append(
+                {
+                    "round": round_label,
+                    "player_name": name,
+                    "class": cls,
+                    "result": result,
+                    "point": 1 if result == "WIN" else 0,
+                }
+            )
+
     return battles
 
 
@@ -86,16 +122,11 @@ def scrape():
                 modal_text = page.inner_text("body")
                 raw_modals.append(modal_text)
 
-                # モーダル冒頭の日付・チーム名を軽く抜き出す（詳細フォーマットは要検証）
                 header_match = re.search(r"(\d{4}\.\d{2}\.\d{2}\([A-Z]+\)[^\n]*)", modal_text)
                 round_label = header_match.group(1) if header_match else f"match_{i}"
 
-                teams_match = re.findall(r"^[A-Za-z].{2,20}$", modal_text, re.MULTILINE)
-                team1 = teams_match[0] if len(teams_match) > 0 else "?"
-                team2 = teams_match[1] if len(teams_match) > 1 else "?"
-
-                rows = parse_battle_text(modal_text, round_label, team1, team2)
-                print(f"[ps_results] match {i}: parsed {len(rows)} player-battles")
+                rows = parse_battles(modal_text, round_label)
+                print(f"[ps_results] match {i} ({round_label}): parsed {len(rows)} player-battles")
                 all_rows.extend(rows)
 
                 # モーダルを閉じる（×ボタン想定、無ければEscape）
@@ -125,18 +156,12 @@ def main():
     save_snapshot("ps_results", rows)
     # パース失敗時の調査用に、モーダルの生テキストも別途保存する
     save_snapshot("ps_results_raw_modals", [{"index": i, "text": t} for i, t in enumerate(raw_modals)])
-    # ファイルを開かなくても確認できるよう、最初のモーダルの生テキストをログにも直接出す。
-    # body全体を取っているため冒頭はナビ等の可能性が高く、"BATTLE"や"WIN"という文字列の
-    # 周辺だけを切り出して表示する（モーダル本体がどこにあってもヒットしやすいように）。
     if raw_modals:
         t = raw_modals[0]
         idx = t.find("BATTLE")
-        if idx == -1:
-            idx = t.find("WIN")
-        if idx == -1:
-            idx = 0
+        idx = idx if idx != -1 else 0
         start = max(0, idx - 300)
-        print(f"[ps_results] --- first modal raw text around 'BATTLE/WIN' (total length={len(t)}) ---")
+        print(f"[ps_results] --- first modal raw text around 'BATTLE' (total length={len(t)}) ---")
         print(t[start:start + 1500])
         print("[ps_results] --- end raw text sample ---")
     return rows
@@ -146,7 +171,7 @@ if __name__ == "__main__":
     rows = main()
     if not rows:
         print(
-            "WARNING: no rows parsed. Either no matches finished yet, or BATTLE_RE needs adjusting "
+            "WARNING: no rows parsed. Either no matches finished yet, or parse_battles() needs adjusting "
             "against data/snapshots/ps_results_raw_modals_*.json",
             file=sys.stderr,
         )

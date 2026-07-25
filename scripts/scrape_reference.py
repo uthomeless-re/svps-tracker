@@ -60,8 +60,13 @@ def scrape_metric_period(page, metric, period, debug_texts):
         text = page.inner_text("body")
     debug_texts.append({"metric": metric, "period": period, "text_len": len(text), "text": text})
 
+    # 実データを確認したところ、各行の順位・選手名の後ろに単独のタブ文字だけの行が挟まっていた
+    # （例: "1\t\nRC\nぱらちゃん\n\t\n34,703\n人"）。ROW_REは"\n+"で複数の空行を許容しているので、
+    # タブ文字だけ取り除けば正しくマッチする。
+    cleaned = text.replace("\t", "")
+
     rows = []
-    for m in ROW_RE.finditer(text):
+    for m in ROW_RE.finditer(cleaned):
         rows.append(
             {
                 "rank": m.group("rank"),

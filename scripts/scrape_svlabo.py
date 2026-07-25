@@ -61,11 +61,44 @@ def parse_detail(detail_text: str):
     return results
 
 
+# 実データを確認したところ、初回実行時はFC2側のボット検知で
+# 「このページの表示は許可されていません」という拒否ページに飛ばされていた（30秒後にトップページへ
+# リダイレクトする案内付き）。これはヘッドレスブラウザ特有のUser-Agent（"HeadlessChrome"）や
+# navigator.webdriverフラグ、あるいはGitHub Actionsのデータセンター系IPが原因の可能性がある。
+# 以下のような対策を入れているが、IPアドレス起因のブロックだった場合はコードでは解決できない
+# （README「既知の制約」参照。その場合は取得頻度を落とす/別ホスティングを検討する）。
+REJECTED_MARKER = "このページの表示は許可されていません"
+
+
 def scrape():
     with sync_playwright() as p:
-        browser = p.chromium.launch()
-        page = browser.new_page(locale="ja-JP", viewport={"width": 1400, "height": 2000})
+        browser = p.chromium.launch(
+            args=["--disable-blink-features=AutomationControlled"],
+        )
+        page = browser.new_page(
+            locale="ja-JP",
+            viewport={"width": 1400, "height": 2000},
+            user_agent=(
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+                "(KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
+            ),
+            extra_http_headers={"Accept-Language": "ja-JP,ja;q=0.9"},
+        )
+        # navigator.webdriver 等、自動操作の分かりやすい痕跡を消す
+        page.add_init_script(
+            "Object.defineProperty(navigator, 'webdriver', {get: () => undefined});"
+        )
+
+        # トップページ経由でアクセスすることで、深いURLへのいきなりのアクセスを避ける
+        page.goto("https://svlabo.jp/", wait_until="networkidle")
+        page.wait_for_timeout(1000)
         page.goto(URL, wait_until="networkidle")
+
+        if REJECTED_MARKER in page.inner_text("body"):
+            print("[svlabo] blocked by FC2's bot detection, retrying once after a pause...", file=sys.stderr)
+            page.wait_for_timeout(5000)
+            page.goto(URL, wait_until="networkidle")
+
         # FC2ブログ側のウィジェットがnetworkidle後もJSで描画を続けるケースに備えて、
         # "｜"（選手行の区切り文字）が出現するまで少し待つ。出なければタイムアウトして先に進む。
         try:
@@ -75,6 +108,13 @@ def scrape():
         page.wait_for_timeout(2000)
         text = page.inner_text("body")
         browser.close()
+
+    if REJECTED_MARKER in text:
+        print(
+            "[svlabo] still blocked after retry. This is likely an IP-level block by FC2 "
+            "against GitHub Actions' datacenter IPs, not a code issue.",
+            file=sys.stderr,
+        )
 
     print(f"[svlabo] raw text length={len(text)}")
     print("[svlabo] --- raw text (first 800 chars) ---")
