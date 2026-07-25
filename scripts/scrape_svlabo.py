@@ -126,15 +126,24 @@ def scrape():
         )
 
     print(f"[svlabo] raw text length={len(text)}")
-    print("[svlabo] --- raw text (first 800 chars) ---")
-    print(text[:800])
+    # 先頭800文字だとフィルターUIの説明文で終わってしまい選手データが見えないため、
+    # 選手行の区切り文字"｜"が最初に出てくる位置の前後を切り出して表示する
+    idx = text.find("｜")
+    start = max(0, idx - 100) if idx != -1 else 0
+    print(f"[svlabo] --- raw text around first '｜' (idx={idx}) ---")
+    print(text[start:start + 1500])
     print("[svlabo] --- end raw text sample ---")
+
+    # ヘッダー行が "プレイヤー\t100位以上\t最高順..." のようにタブ区切りだったことから、
+    # 実際のテーブルはHTMLの<table>で、1行内の各セルがタブ区切りになっている可能性が高い。
+    # ROW_REは行区切り(\n)を前提にしているため、タブを改行に変換してから解析する。
+    normalized = text.replace("\t", "\n")
 
     players = load_players()
     name_index = build_name_index(players)
 
     rows = []
-    for m in ROW_RE.finditer(text):
+    for m in ROW_RE.finditer(normalized):
         raw_name = m.group("name").strip()
         norm = normalize_name(raw_name)
         player = name_index.get(norm)
