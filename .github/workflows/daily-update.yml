@@ -38,25 +38,6 @@ jobs:
         run: python scrape_reference.py
         continue-on-error: true  # 1サイト落ちても他の取得は続ける
 
-      - name: Check if today is the monthly svlabo.jp day
-        id: check_monthly
-        run: |
-          # svlabo.jp（ランクマッチ最高順位）は毎日変わるものではないので、
-          # 毎月1日(JST)だけ取得する。それ以外の日はこのステップ以降のsvlabo取得をスキップする。
-          DAY=$(TZ='Asia/Tokyo' date +%d)
-          echo "today (JST) day-of-month = $DAY"
-          if [ "$DAY" = "01" ]; then
-            echo "run_svlabo=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "run_svlabo=false" >> "$GITHUB_OUTPUT"
-          fi
-
-      - name: Scrape svlabo.jp (monthly)
-        if: steps.check_monthly.outputs.run_svlabo == 'true'
-        working-directory: scripts
-        run: python scrape_svlabo.py
-        continue-on-error: true
-
       - name: Scrape ps.shadowverse-wb.com
         working-directory: scripts
         run: python scrape_ps_results.py
