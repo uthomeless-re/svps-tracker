@@ -55,17 +55,20 @@ async function boot() {
 }
 
 function renderLeaderboard(app, players, images, matches) {
-  const rows = players.map(p => ({ player: p, stats: summarizeMatches(matches, p.player_name) }))
-    .filter(r => r.stats.played > 0)
+  const all = players.map(p => ({ player: p, stats: summarizeMatches(matches, p.player_name) }));
+  const played = all.filter(r => r.stats.played > 0)
     .sort((a, b) => b.stats.points - a.stats.points || b.stats.winRate - a.stats.winRate);
+  const unplayed = all.filter(r => r.stats.played === 0);
+  const rows = played.concat(unplayed);
 
   const medal = ["gold", "silver", "bronze"];
   const body = rows.map((r, i) => {
     const { player, stats } = r;
-    const rankClass = medal[i] || "";
+    const isPlayed = stats.played > 0;
+    const rankClass = isPlayed ? (medal[i] || "") : "";
     return `
       <tr>
-        <td><span class="rank-num ${rankClass}">${i + 1}</span></td>
+        <td><span class="rank-num ${rankClass}">${isPlayed ? i + 1 : "-"}</span></td>
         <td>${teamBadgeHTML(player.team_tag)}</td>
         <td>
           <a class="player-link" href="matches.html?name=${encodeURIComponent(player.player_name)}">
@@ -74,8 +77,8 @@ function renderLeaderboard(app, players, images, matches) {
           </a>
         </td>
         <td>${stats.wins}勝${stats.losses}敗</td>
-        <td>${(stats.winRate * 100).toFixed(0)}%</td>
-        <td class="rank-value">${fmtNum(stats.points)}</td>
+        <td>${isPlayed ? (stats.winRate * 100).toFixed(0) + "%" : "-"}</td>
+        <td class="rank-value">${isPlayed ? fmtNum(stats.points) : "-"}</td>
       </tr>`;
   }).join("");
 

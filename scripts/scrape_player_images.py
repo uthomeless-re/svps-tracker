@@ -19,6 +19,7 @@ import json
 import os
 import re
 import sys
+from urllib.parse import quote
 
 import requests
 
@@ -29,8 +30,12 @@ IMAGES_DIR = os.path.join(SITE_DIR, "images", "players")
 MANIFEST_PATH = os.path.join(DATA_DIR, "player_images.json")
 
 PAGE_URL_TMPL = "https://ps.shadowverse-wb.com/26-27/teams/{slug}"
+# 選手によっては画像ファイル名に半角スペースが入っている（例: 智念せいら＝
+# ".../13_Seira Chinen_profile01.avif"）。以前は \s をまるごと除外していたため
+# スペースの手前でマッチが途切れ、この選手だけ画像が取得できていなかった。
+# 除外すべきなのは属性を閉じるクォートや改行だけなので、スペース自体は許可する。
 IMG_RE = re.compile(
-    r'https://wb-premier-series\.g\.kuroco-img\.app/files/user/player_details/[^"\'\s]+?\.(?:avif|png|jpe?g|webp)'
+    r'https://wb-premier-series\.g\.kuroco-img\.app/files/user/player_details/[^"\'<>\r\n]+?\.(?:avif|png|jpe?g|webp)'
 )
 HEADERS = {"User-Agent": "Mozilla/5.0 (compatible; svps-tracker-bot/1.0)"}
 
@@ -92,7 +97,10 @@ def main():
         dest = os.path.join(IMAGES_DIR, filename)
 
         try:
-            img_resp = requests.get(img_url, timeout=30, headers=HEADERS)
+            # img_url に生のスペースが含まれる場合があるため、リクエスト前にパーセントエンコードする
+            # （scheme/ホスト部分の : や / は safe に指定して壊さないようにする）
+            safe_url = quote(img_url, safe=":/")
+            img_resp = requests.get(safe_url, timeout=30, headers=HEADERS)
             img_resp.raise_for_status()
             with open(dest, "wb") as f:
                 f.write(img_resp.content)

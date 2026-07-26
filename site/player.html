@@ -98,6 +98,8 @@ async function boot() {
 
   const followers = latestValue(history, name, "followers");
   const yt = latestValue(history, name, "youtube_subscribers");
+  const streamSeries = buildCumulativeSeries(history, name, "stream_duration");
+  const streamTotal = streamSeries.data.length ? streamSeries.data[streamSeries.data.length - 1] : null;
   const color = TEAM_COLORS[player.team_tag] || "#888";
 
   app.innerHTML = `
@@ -120,6 +122,10 @@ async function boot() {
         <div class="label">YouTube登録者数</div>
         <div class="value">${yt != null ? fmtNum(yt) : "-"}</div>
         ${player.youtube_url ? `<a href="${player.youtube_url}" target="_blank" rel="noopener" style="font-size:12px;">YouTubeで見る →</a>` : ""}
+      </div>
+      <div class="quick-stat">
+        <div class="label">累積配信時間</div>
+        <div class="value">${streamTotal != null ? fmtNum(streamTotal) + "h" : "-"}</div>
       </div>
       <div class="quick-stat">
         <div class="label">PS公式戦</div>

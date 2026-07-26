@@ -21,13 +21,14 @@ svps-tracker/
 │   ├── scrape_ps_results.py    ps.shadowverse-wb.com から PS戦績（個人） を取得（毎日自動）
 │   ├── scrape_youtube.py       各選手のYouTubeチャンネル登録者数を取得（毎日自動、API/スクレイピング併用）
 │   ├── scrape_player_images.py ps.shadowverse-wb.comから選手写真を取得（毎日自動。既にある選手はスキップ）
+│   ├── scrape_result.py        チーム順位（result.json）を外部の公開JSONから取得（毎日自動。詳細は「チーム順位について」参照）
 │   ├── scrape_svlabo.py        svlabo.jp から ランクマッチ最高順位・レート を取得（★自動実行からは除外。手動で使う用に残してあるだけ）
 │   ├── update_history.py       上記のスナップショットを data/history.csv に統合
 │   └── requirements.txt
 ├── data/
 │   ├── players.csv             選手マスタ（8チーム37名。youtube_url/twitch_url/ps_slugを保持。
 │   │                            詳細は「players.csvについて」参照）
-│   ├── result.json             チーム順位（手動更新。詳細は「チーム順位について」参照）
+│   ├── result.json             チーム順位（毎日自動取得。詳細は「チーム順位について」参照）
 │   ├── history.csv              蓄積される日次データ（ロング形式。followers/youtube_subscribers/
 │   │                             stream_duration/watch_time/video_view_count/video_upload_count/
 │   │                             cr_*系のみ。PS戦績はここには入らない。下記参照）
@@ -238,17 +239,21 @@ svlabo.jp（ランクマッチ最高順位）は当初、毎日自動取得→�
 - `battlepoint`: そのチームが獲得した個人戦の勝ち数の累計（＝公式サイトの対戦カードに出るスコアの合計。
   例: 3-1で勝ったら3、1-3で負けたら1）。この値の大小で順位を決めています。
 
-**このファイルはps.shadowverse-wb.comの公開APIなどではなく手動更新のファイルです**（自動取得はしていません）。
-1節終了ごとに、このリポジトリの`data/result.json`をGitHub上で直接編集して、各チームの
-`win`/`lose`/`diff`/`battlepoint`を更新・pushしてください（`status`は`"not_started"` → `"in_progress"` →
-`"final"`のように使うことを想定していますが、値自体は表示ロジックに影響しません）。pushすると
-`deploy-pages.yml`が反応して自動的にサイトに反映されます。
+**このファイルは`scrape_result.py`が毎日自動取得します。**
+取得元は`https://uthomeless-public-tool.github.io/2026ps/data/result.json`（別プロジェクトとして
+運用している予想サイト「2026ps」が公開しているJSON）です。スキーマが完全に同じため変換なしで
+そのまま`data/result.json`に保存しています。取得に失敗した場合（サイト側が落ちている・想定外の
+形式など）は既存の`data/result.json`をそのまま残し、上書きしません（`scrape_result.py`内で保証）。
 
-まだ一度も更新していない（8チーム全員 win=lose=0）場合は、`site/common.js`の
+上記の取得元URLが将来使えなくなった場合や、値を一時的に手で直したい場合は、これまで通り
+`data/result.json`をGitHub上で直接編集して`win`/`lose`/`diff`/`battlepoint`を更新・pushすることも
+できます（`scrape_result.py`は次回実行時に取得元URLの値で再度上書きするので、恒久的な手動運用に
+したい場合はワークフローから該当ステップを外してください）。
+
+まだ一度もデータがない（8チーム全員 win=lose=0）場合は、`site/common.js`の
 `computeTeamStandings()`が自動的に`data/match_results.csv`（選手個人の試合結果の集計）から
 順位を計算するフォールバックに切り替わります。ただしこちらは個人戦の合計ポイントだけを見ており、
-公式の得失差ボーナスなどは反映されないため、正式な順位としてはresult.jsonを更新していく方を
-推奨します。
+公式の得失差ボーナスなどは反映されないため、正式な順位としてはresult.jsonの自動取得を優先します。
 
 ## 試合結果について（match_results.csv / matches.html）
 

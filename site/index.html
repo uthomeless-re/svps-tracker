@@ -55,17 +55,39 @@ async function boot() {
   const { list: standings, source } = computeTeamStandings(players, matches, resultJson);
   const hasRank = source !== "none";
 
+  const header = hasRank ? `
+    <div class="standings-header">
+      <span class="col-rank">順位</span>
+      <span class="col-logo">ロゴ</span>
+      <span class="col-name">チーム名</span>
+      <span class="col-num">WIN</span>
+      <span class="col-num">LOSE</span>
+      <span class="col-num">W/L DIFF</span>
+      <span class="col-num">BATTLE POINT</span>
+      <span class="col-chevron"></span>
+    </div>` : "";
+
   const blocks = standings.map((team, i) => {
     const cards = team.players.map(p => playerCardHTML(p, history, images)).join("");
-    const diffLabel = source === "result.json" ? `（${team.wins}勝${team.losses}敗 / 得失差${team.diff >= 0 ? "+" : ""}${team.diff}）` : `（${team.wins}勝${team.losses}敗）`;
-    const pointsLabel = hasRank ? `${fmtNum(team.points)}pt${diffLabel}` : "試合結果はまだありません";
+    const diff = team.diff || 0;
+    const diffText = diff > 0 ? `+${diff}` : `${diff}`;
+    const row = hasRank ? `
+      <span class="col-rank">${i + 1}</span>
+      <span class="col-logo">${teamBadgeHTML(team.team_tag)}</span>
+      <span class="col-name">${team.team_name}</span>
+      <span class="col-num">${team.wins}</span>
+      <span class="col-num">${team.losses}</span>
+      <span class="col-num">${diffText}</span>
+      <span class="col-num">${fmtNum(team.points)}</span>
+    ` : `
+      ${teamBadgeHTML(team.team_tag)}
+      <span class="team-title">${team.team_name}</span>
+      <span class="team-points">試合結果はまだありません</span>
+    `;
     return `
       <details class="team-block" ${i === 0 && hasRank ? "open" : ""}>
         <summary>
-          <span class="team-rank">${hasRank ? i + 1 : "-"}</span>
-          ${teamBadgeHTML(team.team_tag)}
-          <span class="team-title">${team.team_name}</span>
-          <span class="team-points">${pointsLabel}</span>
+          ${row}
           <span class="chevron">▼</span>
         </summary>
         <div class="team-panel">
@@ -74,7 +96,7 @@ async function boot() {
       </details>`;
   }).join("");
 
-  app.innerHTML = blocks;
+  app.innerHTML = header + blocks;
 }
 
 boot();

@@ -55,6 +55,11 @@ jobs:
         run: python scrape_player_images.py
         continue-on-error: true  # 写真は既にある選手はスキップするので、失敗しても他の処理は続ける
 
+      - name: Fetch team standings (result.json)
+        working-directory: scripts
+        run: python scrape_result.py
+        continue-on-error: true  # 失敗時は既存のdata/result.jsonをそのまま残す（スクリプト側で担保）
+
       - name: Merge into history.csv
         working-directory: scripts
         run: python update_history.py
