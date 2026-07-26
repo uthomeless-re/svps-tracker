@@ -204,7 +204,7 @@ const TABLE_COLUMNS = [
   { key: "yt", label: "登録者", defaultDir: "desc",
     sortValue: r => r.yt ?? -1,
     render: r => r.yt != null ? fmtNum(r.yt) : "-" },
-  { key: "ps", label: "PS", defaultDir: "desc",
+  { key: "ps", label: "戦績", defaultDir: "desc",
     sortValue: r => r.stats.points,
     render: r => r.stats.played ? `${r.stats.wins}勝${r.stats.losses}敗` : "-" },
   { key: "stream", label: "配信時間", defaultDir: "desc",
@@ -216,7 +216,7 @@ const TABLE_COLUMNS = [
   { key: "crrank", label: "最高順位", defaultDir: "asc",
     sortValue: r => r.crRank ?? Infinity,
     render: r => r.crRank != null ? fmtNum(r.crRank) + "位" : "-" },
-  { key: "cr100", label: "BEYOND回数(100位以内)", defaultDir: "desc",
+  { key: "cr100", label: "BEYOND回数", defaultDir: "desc",
     sortValue: r => r.cr100,
     render: r => fmtNum(r.cr100) },
   { key: "x", label: "X", defaultDir: "asc",
@@ -249,7 +249,7 @@ function renderTableMode(container) {
       </tr>`).join("");
 
     container.innerHTML = `
-      <table class="rank-table"><thead><tr>${thead}</tr></thead><tbody>${body}</tbody></table>
+      <div class="table-scroll"><table class="rank-table nowrap"><thead><tr>${thead}</tr></thead><tbody>${body}</tbody></table></div>
     `;
     container.querySelectorAll("th.sortable").forEach(th => {
       th.addEventListener("click", () => {

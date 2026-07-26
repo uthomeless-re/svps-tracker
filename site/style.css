@@ -169,6 +169,12 @@ table.rank-table th.sortable .sort-arrow { display: inline-block; width: 10px; o
 table.rank-table th.sortable.active .sort-arrow { opacity: 1; color: var(--accent); }
 tr.team-row-stripe { border-left: 3px solid transparent; }
 
+/* compare.html: 表で比較（一覧比較表）は列数が多く（10列）、狭い画面だと各列が
+   窮屈になって「1勝0敗」のような値まで折り返されてしまっていた。table-scrollで
+   横スクロール可能にしつつ、nowrapで各セルの文字は折り返さないようにする。 */
+.table-scroll { overflow-x: auto; }
+table.rank-table.nowrap th, table.rank-table.nowrap td { white-space: nowrap; }
+
 /* ranking.html: フォロワー数/登録者数の行末に出すX/YouTubeリンク。指標を切り替えても
    幅がガタつかないよう固定幅・中央揃えのバッジ風にしている（ラベルは"X"/"YouTube"）。 */
 td.ext-link-cell { width: 70px; text-align: center; }
