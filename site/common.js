@@ -64,7 +64,7 @@ const METRIC_LABELS = {
   youtube_subscribers: "YouTube登録者数",
   stream_duration: "配信時間 (h)",
   stream_duration_cumulative: "累積配信時間 (h)",
-  watch_time: "視聴時間 (h)",
+  watch_time: "配信視聴時間 (h)",
   video_view_count: "動画再生回数",
   video_upload_count: "動画本数",
   ps_win: "PS公式戦 勝敗",
@@ -272,6 +272,23 @@ function crTopNLabel(threshold) {
   return `CR順位 TOP${threshold}入り回数`;
 }
 
+// 選手ごとの「ランクマッチ最高順位（全期間・全クラス通じての最良値）」を
+// data/svlabo_leaderboards.csv（全ユーザー分を一括取得したもの）から求める。
+// 以前はhistory.csvのcr_best_rank_overallを見ていたが、これは手動scrape_svlabo.pyを
+// 実行した選手にしか値が入らず、Atom以外ほぼ空という状態になっていた。
+// svlabo_leaderboards.csvは全選手分が揃っているので、こちらを正とする。
+function crBestRankForPlayer(leaderboard, player) {
+  const lookupName = NAME_ALIASES[player.player_name] || player.player_name;
+  const key = normalizeName(lookupName);
+  let best = null;
+  leaderboard.forEach(r => {
+    if (normalizeName(r.player_name) !== key) return;
+    const rank = parseInt(r.rank, 10);
+    if (!Number.isNaN(rank) && (best === null || rank < best)) best = rank;
+  });
+  return best;
+}
+
 // data/battle_details.csv（svlabo.jpの「N節 試合詳細結果＆配信時間指定URL」記事から手動で
 // 取り込んだ、節ごとの試合詳細。使用/未使用クラスの内訳と配信URL(タイムスタンプ付き)を持つ）
 // を読み込む。無ければ空配列を返す。
@@ -388,12 +405,18 @@ function computeTeamStandings(players, matches, resultJson) {
     const loser = winner === tagA ? tagB : tagA;
     if (teams[winner]) teams[winner].wins++;
     if (teams[loser]) teams[loser].losses++;
+    // result.json側のdiff（得失差の累計。例: 3-1で勝ったら+2）と同じ考え方で、
+    // フォールバック側でも試合単位の得失差を積み上げる（以前はここが未実装で、
+    // result.jsonが未入力の間はW/L DIFF列が常に0のままになっていた）。
+    const diff = Math.abs(tagPoints[tagA] - tagPoints[tagB]);
+    if (teams[winner]) teams[winner].diff += diff;
+    if (teams[loser]) teams[loser].diff -= diff;
   });
 
   const list = Object.values(teams);
   const hasMatches = matches.length > 0;
   if (hasMatches) {
-    list.sort((a, b) => b.points - a.points || b.wins - a.wins);
+    list.sort((a, b) => b.points - a.points || b.diff - a.diff || b.wins - a.wins);
   }
   return { list, source: hasMatches ? "match_results.csv" : "none" };
 }

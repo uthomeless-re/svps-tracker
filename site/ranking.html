@@ -35,18 +35,21 @@
 //      「順位が指定しきい値(10/30/50/100)以内だった回数」でランキングする。期間ではなく
 //      しきい値を選ぶ専用のセレクトボックスに差し替える。
 const CURRENT_METRICS = ["followers", "youtube_subscribers"];
-const EXCLUDED_PREFIXES = ["ps_win", "ps_point", "cr_"]; // PS戦績はps_wins/ps_pointsとして別途統合、cr_*(生データ)はcr_topN_countに統合
+const EXCLUDED_PREFIXES = ["ps_win", "ps_point", "cr_"]; // PS戦績は対戦成績ページ(rounds.html)にまとまっているのでランキングには出さない、cr_*(生データ)はcr_topN_countに統合
 
 function isCurrentMetric(m) { return CURRENT_METRICS.includes(m); }
 function isCumulativeMetric(m) { return m === "stream_duration_cumulative"; }
 function isCrMetric(m) { return m === "cr_topN_count"; }
-function isPsMetric(m) { return m === "ps_wins" || m === "ps_points"; }
+
+// フォロワー数/登録者数の行の右端に、その選手のX/YouTubeへのリンクを出すための対応表
+const CURRENT_METRIC_LINK_FIELD = { followers: "x_url", youtube_subscribers: "youtube_url" };
+const CURRENT_METRIC_LINK_LABEL = { followers: "X", youtube_subscribers: "YouTube" };
 
 async function boot() {
   const app = document.getElementById("app");
-  let data, svlabo, matches;
+  let data, svlabo;
   try {
-    [data, svlabo, matches] = await Promise.all([loadData(), loadSvlaboLeaderboard(), loadMatches()]);
+    [data, svlabo] = await Promise.all([loadData(), loadSvlaboLeaderboard()]);
   } catch (err) {
     app.innerHTML = `<div class="error-banner">データ読み込みエラー: ${err.message}</div>`;
     return;
@@ -58,7 +61,6 @@ async function boot() {
     .sort((a, b) => a.localeCompare(b));
   const hasStreamDuration = periodicMetrics.includes("stream_duration");
   const hasCrData = svlabo.length > 0;
-  const hasPsData = matches.length > 0;
 
   const currentOptions = CURRENT_METRICS.filter(m => history.some(r => r.metric === m))
     .map(m => `<option value="${m}">${metricLabel(m)}</option>`).join("");
@@ -66,10 +68,6 @@ async function boot() {
   const cumulativeOptions = hasStreamDuration
     ? `<option value="stream_duration_cumulative">${metricLabel("stream_duration_cumulative")}</option>` : "";
   const crOptions = hasCrData ? `<option value="cr_topN_count">CR順位 TOP N入り回数</option>` : "";
-  // 対戦成績ページ(rounds.html)の通算成績を、ランキングでも見られるようにする
-  // （「今の試合結果をランキングに入れちゃってもいい」という要望に対応）。
-  const psOptions = hasPsData
-    ? `<option value="ps_wins">PS公式戦 勝利数</option><option value="ps_points">PS公式戦 獲得ポイント</option>` : "";
 
   app.innerHTML = `
     <div class="control-row">
@@ -79,7 +77,6 @@ async function boot() {
           ${currentOptions ? `<optgroup label="現在値">${currentOptions}</optgroup>` : ""}
           ${periodicOptions ? `<optgroup label="期間ごとの指標">${periodicOptions}</optgroup>` : ""}
           ${cumulativeOptions ? `<optgroup label="通算">${cumulativeOptions}</optgroup>` : ""}
-          ${psOptions ? `<optgroup label="PS公式戦">${psOptions}</optgroup>` : ""}
           ${crOptions ? `<optgroup label="ランクマッチ(CR)">${crOptions}</optgroup>` : ""}
         </select>
       </div>
@@ -164,6 +161,17 @@ async function boot() {
     });
     withValue.sort((a, b) => lowerBetter ? a.value - b.value : b.value - a.value);
 
+    // フォロワー数/登録者数のランキングでは、行の右端にその選手のX/YouTubeへの
+    // リンクを添える（見た数値をそのまま確認しにいけるように）。
+    const linkField = CURRENT_METRIC_LINK_FIELD[metric];
+    const linkLabel = CURRENT_METRIC_LINK_LABEL[metric];
+    const linkCellHTML = p => {
+      if (!linkField) return "";
+      const url = p[linkField];
+      return `<td>${url ? `<a href="${url}" target="_blank" rel="noopener" style="font-size:12px;">${linkLabel}</a>` : ""}</td>`;
+    };
+    const linkHeaderHTML = linkField ? "<th></th>" : "";
+
     const medal = ["gold", "silver", "bronze"];
     const rankedBody = withValue.map((r, i) => {
       const rankClass = medal[i] || "";
@@ -178,6 +186,7 @@ async function boot() {
             </a>
           </td>
           <td class="rank-value">${fmtNum(r.value)}</td>
+          ${linkCellHTML(r.player)}
         </tr>`;
     }).join("");
 
@@ -192,11 +201,12 @@ async function boot() {
             </a>
           </td>
           <td class="rank-value" style="color:var(--text-muted);">-</td>
+          ${linkCellHTML(r.player)}
         </tr>`).join("");
 
     document.getElementById("rankTableWrap").innerHTML = `
       <table class="rank-table">
-        <thead><tr><th>#</th><th>チーム</th><th>選手</th><th>${headerLabel}</th></tr></thead>
+        <thead><tr><th>#</th><th>チーム</th><th>選手</th><th>${headerLabel}</th>${linkHeaderHTML}</tr></thead>
         <tbody>${rankedBody}${unrankedBody}</tbody>
       </table>`;
   }

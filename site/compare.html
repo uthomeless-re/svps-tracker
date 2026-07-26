@@ -146,6 +146,7 @@ function renderTeamButtons() {
 // 揃っていない可能性がある）として解釈している。配信時間・動画投稿数は、このサイトの他の
 // ページと同じ考え方（隔週の生値ではなく積み上げた累積値の方が意味がある）に合わせて累積値で出す。
 let matches = [];
+let svlabo = [];
 let tableSort = { key: "followers", dir: "desc" };
 
 function xHandleFromUrl(url) {
@@ -160,13 +161,12 @@ function hexToRgba(hex, alpha) {
   return `rgba(${r},${g},${b},${alpha})`;
 }
 
-function buildTableRows(players, history, images, matches) {
+function buildTableRows(players, history, images, matches, svlabo) {
   return players.map(player => {
     const streamSeries = buildCumulativeSeries(history, player.player_name, "stream_duration");
     const videoSeries = buildCumulativeSeries(history, player.player_name, "video_upload_count");
     const followersRaw = latestValue(history, player.player_name, "followers");
     const ytRaw = latestValue(history, player.player_name, "youtube_subscribers");
-    const crRankRaw = latestValue(history, player.player_name, "cr_best_rank_overall");
     return {
       player, images,
       followers: followersRaw != null ? parseFloat(followersRaw) : null,
@@ -174,7 +174,10 @@ function buildTableRows(players, history, images, matches) {
       stats: summarizeMatches(matches, player.player_name),
       streamTotal: streamSeries.data.length ? streamSeries.data[streamSeries.data.length - 1] : null,
       videoTotal: videoSeries.data.length ? videoSeries.data[videoSeries.data.length - 1] : null,
-      crRank: crRankRaw != null ? parseFloat(crRankRaw) : null,
+      // data/svlabo_leaderboards.csv（全ユーザー分）から選手ごとの最高順位を求める。
+      // 以前はhistory.csvのcr_best_rank_overallを見ていたが、これは手動スクレイピングを
+      // 実行した選手（Atomのみ）にしか値が入っておらず、他の選手が軒並み「-」になっていた。
+      crRank: crBestRankForPlayer(svlabo, player),
     };
   });
 }
@@ -210,7 +213,7 @@ const TABLE_COLUMNS = [
 ];
 
 function renderTableMode(container) {
-  const rows = buildTableRows(players, history, images, matches);
+  const rows = buildTableRows(players, history, images, matches, svlabo);
 
   function draw() {
     const col = TABLE_COLUMNS.find(c => c.key === tableSort.key);
@@ -234,7 +237,6 @@ function renderTableMode(container) {
       </tr>`).join("");
 
     container.innerHTML = `
-      <div class="empty-note" style="padding-top:0;">見出しをクリックすると、その項目で並び替えられます。行の色はチームカラーです。</div>
       <table class="rank-table"><thead><tr>${thead}</tr></thead><tbody>${body}</tbody></table>
     `;
     container.querySelectorAll("th.sortable").forEach(th => {
@@ -287,7 +289,12 @@ function renderGraphMode(container) {
   // 多すぎて見づらい場合は下の「全解除」ボタンで一旦クリアできる。
   players.forEach(p => selected.add(p.player_name));
 
-  document.getElementById("metricSelect").addEventListener("change", drawCompareChart);
+  // 初期選択の指標は「累積配信時間」にする。フォロワー数・登録者数はまだ観測点が
+  // 1つしかない選手が多く、折れ線としては見づらいため（配信時間は隔週ごとに増えていく）。
+  const metricSelect = document.getElementById("metricSelect");
+  if (metrics.includes("stream_duration_cumulative")) metricSelect.value = "stream_duration_cumulative";
+
+  metricSelect.addEventListener("change", drawCompareChart);
   document.getElementById("selectAllBtn").addEventListener("click", () => {
     players.forEach(p => selected.add(p.player_name));
     renderChips(); renderTeamButtons(); drawCompareChart();
@@ -325,7 +332,7 @@ async function boot() {
   const app = document.getElementById("app");
   let data;
   try {
-    [data, matches] = await Promise.all([loadData(), loadMatches()]);
+    [data, matches, svlabo] = await Promise.all([loadData(), loadMatches(), loadSvlaboLeaderboard()]);
   } catch (err) {
     app.innerHTML = `<div class="error-banner">データ読み込みエラー: ${err.message}</div>`;
     return;
@@ -334,7 +341,7 @@ async function boot() {
   history = data.history;
   images = data.images;
 
-  renderModeSwitcher(app, "graph");
+  renderModeSwitcher(app, "table");
 }
 
 boot();
