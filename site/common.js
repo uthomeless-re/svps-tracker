@@ -229,6 +229,13 @@ function teamLogoHTML(teamTag, size) {
   return `<img class="team-logo" src="images/teams/${file}" width="${size}" height="${size}" alt="${escapeAttr(teamTag)}" title="${escapeAttr(teamTag)}">`;
 }
 
+// svlabo.jp側の外部チーム表記 → 自チームの内部team_tagへの逆変換
+// （scripts/common.pyのTEAM_TAG_ALIASES、自チーム→外部の逆）。
+// beyond.html（ランクマッチの全ユーザーリーダーボード）で、自チーム所属選手の行を
+// 自チームのロゴで表示するために使う。該当が無い（他チーム・無所属）タグはそのまま返す。
+const REVERSE_TEAM_TAG_ALIASES = { RID: "RDL", VL: "VRL" };
+function resolveTeamTag(tag) { return REVERSE_TEAM_TAG_ALIASES[tag] || tag; }
+
 // data/match_results.csv を読み込む（存在しない/まだ試合が無い場合は空配列を返す）。
 async function loadMatches() {
   try {
@@ -287,6 +294,22 @@ function crCountForPlayer(counts, player) {
 
 function crTopNLabel(threshold) {
   return `CR順位 TOP${threshold}入り回数`;
+}
+
+// players.csv側の選手を「正規化した名前 → 選手オブジェクト」の辞書にしておく。
+// beyond.html（svlabo_leaderboards.csvの全ユーザーリーダーボード）で、そこに載っている
+// 選手がPS出場選手かどうかを判定し、該当すればplayer.htmlへのリンクにするために使う。
+// NAME_ALIASESを経由するので表記ゆれ（Chappy/Chappy_ttv等）も吸収される。
+function buildPlayerLookup(players) {
+  const map = {};
+  players.forEach(p => {
+    const key = normalizeName(NAME_ALIASES[p.player_name] || p.player_name);
+    map[key] = p;
+  });
+  return map;
+}
+function lookupPlayer(playerLookup, rawName) {
+  return playerLookup[normalizeName(rawName)] || null;
 }
 
 // 選手ごとの「ランクマッチ最高順位（全期間・全クラス通じての最良値）」を

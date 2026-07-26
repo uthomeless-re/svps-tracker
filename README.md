@@ -60,6 +60,12 @@ svps-tracker/
     ├── compare.html             比較（「グラフで比較」＝選手を選んで指標の推移を折れ線で重ねる、
     │                             「表で比較」＝全選手をチーム/フォロワー数/戦績などの列でまとめた
     │                             ソート可能な一覧表）
+    ├── beyond.html              BEYOND（data/svlabo_leaderboards.csvの全ユーザーランクマッチ
+    │                             リーダーボード。PS出場選手・アマチュアを区別せず全掲載者が対象。
+    │                             「クラス別」＝期間×クラスで絞り込んだ順位表、
+    │                             「全クラス合算TOP100」＝各選手のその期間内での最高レート
+    │                             （クラス問わず）で並べ直したTOP100。期間・チーム・選手名検索で
+    │                             絞り込める。PS出場選手の行はplayer.htmlへのリンクになる）
     ├── images/players/          ダウンロードした選手写真（scrape_player_images.pyが生成、初回pushには含まれない）
     ├── images/teams/            8チームの公式ロゴ画像（提供されたPNG。common.jsのteamLogoHTML()が参照）
     └── images/classes/          シャドバのクラスアイコン（ユーザー提供のSVG、8種）

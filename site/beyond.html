@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BEYOND | Shadowverse Premier Series 26-27 選手データ</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+  <h1><a href="index.html">Shadowverse Premier Series 26-27 選手データ</a></h1>
+  <nav>
+    <a class="nav-btn" href="index.html">選手一覧</a>
+    <a class="nav-btn" href="ranking.html">ランキング</a>
+    <a class="nav-btn" href="rounds.html">対戦成績</a>
+    <a class="nav-btn" href="compare.html">比較</a>
+    <a class="nav-btn active" href="beyond.html">BEYOND</a>
+  </nav>
+</header>
+<main id="app">
+  <div class="empty-note">読み込み中...</div>
+</main>
+
+<script src="common.js"></script>
+<script>
+// svlabo.jpから一括取得したランクマッチ(Worlds Beyond)の全ユーザーリーダーボード
+// （data/svlabo_leaderboards.csv）を閲覧するページ。PS出場選手・アマチュアを区別せず、
+// 掲載されている全ユーザーを対象にする。
+// - 「クラス別」: svlabo.jp本家と同じく 期間×クラス の組み合わせで絞り込んだ順位表
+// - 「全クラス合算TOP100」: 期間だけ選び、各選手のその期間内での最高レート（クラス問わず）で
+//   並べ直したTOP100（svlabo.jp本家には無い集計）
+let svlabo = [], playerLookup = {};
+let mode = "class";
+const classFilters = { period: null, class: null, team: "", query: "" };
+const combinedFilters = { period: null, team: "", query: "" };
+
+function playerNameCellHTML(rawName) {
+  const p = lookupPlayer(playerLookup, rawName);
+  if (p) return `<a class="player-link" href="player.html?name=${encodeURIComponent(p.player_name)}">${rawName}</a>`;
+  return rawName;
+}
+
+function teamCellHTML(rawTag) {
+  const tag = resolveTeamTag(rawTag);
+  if (!tag) return `<span style="color:var(--text-muted); font-size:12px;">無所属</span>`;
+  return teamLogoHTML(tag, 20);
+}
+
+function teamOptionsHTML(teams) {
+  return `<option value="">すべて</option>${teams.map(t => `<option value="${t}">${t}</option>`).join("")}<option value="__none__">無所属</option>`;
+}
+
+function renderClassMode(container, periods, classes, teams) {
+  container.innerHTML = `
+    <div class="control-row">
+      <div class="control-group">
+        <label>期間</label>
+        <select id="periodSelect">${periods.map(p => `<option value="${escapeAttr(p)}">${p}</option>`).join("")}</select>
+      </div>
+      <div class="control-group">
+        <label>クラス</label>
+        <select id="classSelect">${classes.map(c => `<option value="${escapeAttr(c)}">${c}</option>`).join("")}</select>
+      </div>
+      <div class="control-group">
+        <label>チーム</label>
+        <select id="teamSelect">${teamOptionsHTML(teams)}</select>
+      </div>
+      <div class="control-group">
+        <label>選手検索</label>
+        <input type="text" id="querySelect" placeholder="選手名で検索">
+      </div>
+    </div>
+    <div id="tableWrap"></div>
+  `;
+  const periodSel = container.querySelector("#periodSelect");
+  const classSel = container.querySelector("#classSelect");
+  const teamSel = container.querySelector("#teamSelect");
+  const querySel = container.querySelector("#querySelect");
+  periodSel.value = classFilters.period;
+  classSel.value = classFilters.class;
+  teamSel.value = classFilters.team;
+  querySel.value = classFilters.query;
+
+  function draw() {
+    classFilters.period = periodSel.value;
+    classFilters.class = classSel.value;
+    classFilters.team = teamSel.value;
+    classFilters.query = querySel.value;
+
+    let rows = svlabo.filter(r => r.period === classFilters.period && r.class === classFilters.class);
+    if (classFilters.team === "__none__") rows = rows.filter(r => !r.team_tag);
+    else if (classFilters.team) rows = rows.filter(r => resolveTeamTag(r.team_tag) === classFilters.team);
+    if (classFilters.query.trim()) {
+      const q = normalizeName(classFilters.query);
+      rows = rows.filter(r => normalizeName(r.player_name).includes(q));
+    }
+    rows = rows.slice().sort((a, b) => parseInt(a.rank, 10) - parseInt(b.rank, 10));
+
+    const body = rows.map(r => `
+      <tr>
+        <td class="rank-value">${r.rank}位</td>
+        <td>${teamCellHTML(r.team_tag)}</td>
+        <td>${playerNameCellHTML(r.player_name)}</td>
+        <td class="rank-value">${fmtNum(r.rating)}</td>
+      </tr>`).join("");
+
+    container.querySelector("#tableWrap").innerHTML = rows.length ? `
+      <table class="rank-table">
+        <thead><tr><th>順位</th><th>チーム</th><th>選手</th><th>レート</th></tr></thead>
+        <tbody>${body}</tbody>
+      </table>` : `<div class="empty-note">該当する選手がいません</div>`;
+  }
+
+  [periodSel, classSel, teamSel].forEach(el => el.addEventListener("change", draw));
+  querySel.addEventListener("input", draw);
+  draw();
+}
+
+function renderCombinedMode(container, periods, teams) {
+  container.innerHTML = `
+    <div class="control-row">
+      <div class="control-group">
+        <label>期間</label>
+        <select id="periodSelect">${periods.map(p => `<option value="${escapeAttr(p)}">${p}</option>`).join("")}</select>
+      </div>
+      <div class="control-group">
+        <label>チーム</label>
+        <select id="teamSelect">${teamOptionsHTML(teams)}</select>
+      </div>
+      <div class="control-group">
+        <label>選手検索</label>
+        <input type="text" id="querySelect" placeholder="選手名で検索">
+      </div>
+    </div>
+    <div id="tableWrap"></div>
+  `;
+  const periodSel = container.querySelector("#periodSelect");
+  const teamSel = container.querySelector("#teamSelect");
+  const querySel = container.querySelector("#querySelect");
+  periodSel.value = combinedFilters.period;
+  teamSel.value = combinedFilters.team;
+  querySel.value = combinedFilters.query;
+
+  function draw() {
+    combinedFilters.period = periodSel.value;
+    combinedFilters.team = teamSel.value;
+    combinedFilters.query = querySel.value;
+
+    const rows = svlabo.filter(r => r.period === combinedFilters.period);
+    // 選手ごとに、その期間内での最高レート（クラス問わず）を求める
+    const byPlayer = {};
+    rows.forEach(r => {
+      const key = r.team_tag + "|" + r.player_name;
+      const rating = parseFloat(r.rating) || 0;
+      if (!byPlayer[key] || rating > byPlayer[key].rating) {
+        byPlayer[key] = { team_tag: r.team_tag, player_name: r.player_name, rating, best_class: r.class };
+      }
+    });
+    let combined = Object.values(byPlayer);
+    if (combinedFilters.team === "__none__") combined = combined.filter(r => !r.team_tag);
+    else if (combinedFilters.team) combined = combined.filter(r => resolveTeamTag(r.team_tag) === combinedFilters.team);
+    if (combinedFilters.query.trim()) {
+      const q = normalizeName(combinedFilters.query);
+      combined = combined.filter(r => normalizeName(r.player_name).includes(q));
+    }
+    combined.sort((a, b) => b.rating - a.rating);
+    combined = combined.slice(0, 100);
+    assignCompetitionRanks(combined, r => r.rating);
+
+    const body = combined.map(r => `
+      <tr>
+        <td class="rank-value">${r.rank}位</td>
+        <td>${teamCellHTML(r.team_tag)}</td>
+        <td>${playerNameCellHTML(r.player_name)}</td>
+        <td>${classIconHTML(r.best_class, 20)}</td>
+        <td class="rank-value">${fmtNum(r.rating)}</td>
+      </tr>`).join("");
+
+    container.querySelector("#tableWrap").innerHTML = combined.length ? `
+      <table class="rank-table">
+        <thead><tr><th>順位</th><th>チーム</th><th>選手</th><th>最高クラス</th><th>レート</th></tr></thead>
+        <tbody>${body}</tbody>
+      </table>` : `<div class="empty-note">該当する選手がいません</div>`;
+  }
+
+  [periodSel, teamSel].forEach(el => el.addEventListener("change", draw));
+  querySel.addEventListener("input", draw);
+  draw();
+}
+
+function renderModeSwitcher(app, periods, classes, teams) {
+  app.innerHTML = `
+    <div class="team-select-row" style="margin-bottom:14px;">
+      <button class="team-select-btn ${mode === "class" ? "active" : ""}" id="modeClassBtn"
+        style="${mode === "class" ? "background:var(--accent);" : ""}">クラス別</button>
+      <button class="team-select-btn ${mode === "combined" ? "active" : ""}" id="modeCombinedBtn"
+        style="${mode === "combined" ? "background:var(--accent);" : ""}">全クラス合算TOP100</button>
+    </div>
+    <div id="modeContent"></div>
+  `;
+  document.getElementById("modeClassBtn").addEventListener("click", () => { mode = "class"; renderModeSwitcher(app, periods, classes, teams); });
+  document.getElementById("modeCombinedBtn").addEventListener("click", () => { mode = "combined"; renderModeSwitcher(app, periods, classes, teams); });
+
+  const content = document.getElementById("modeContent");
+  if (mode === "combined") renderCombinedMode(content, periods, teams);
+  else renderClassMode(content, periods, classes, teams);
+}
+
+async function boot() {
+  const app = document.getElementById("app");
+  let data;
+  try {
+    [data, svlabo] = await Promise.all([loadData(), loadSvlaboLeaderboard()]);
+  } catch (err) {
+    app.innerHTML = `<div class="error-banner">データ読み込みエラー: ${err.message}</div>`;
+    return;
+  }
+  if (!svlabo.length) {
+    app.innerHTML = `<div class="empty-note">まだランクマッチのデータがありません</div>`;
+    return;
+  }
+  playerLookup = buildPlayerLookup(data.players);
+
+  // ファイル内での出現順が新しい期間から並んでいるので、そのまま使う（先頭が最新）。
+  const periods = [...new Set(svlabo.map(r => r.period))];
+  const classes = [...new Set(svlabo.map(r => r.class))];
+  const teams = [...new Set(svlabo.map(r => resolveTeamTag(r.team_tag)).filter(Boolean))].sort((a, b) => a.localeCompare(b));
+
+  classFilters.period = periods[0];
+  classFilters.class = classes[0];
+  combinedFilters.period = periods[0];
+
+  renderModeSwitcher(app, periods, classes, teams);
+}
+
+boot();
+</script>
+</body>
+</html>
