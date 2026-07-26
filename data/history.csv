@@ -38,6 +38,7 @@ date,team_tag,player_name,metric,period,value
 2026-07-26,CR,Atom,watch_time,may_early_2026,17519
 2026-07-26,CR,Atom,watch_time,may_late_2026,9365
 2026-07-26,CR,Atom,watch_time,regular_season,4172
+2026-07-26,CR,Atom,youtube_subscribers,current,8010
 2026-07-26,CR,Winter,followers,current,2904
 2026-07-26,CR,Winter,ps_point,2026.07.11(SAT) 13:00~,0
 2026-07-26,CR,Winter,ps_win,2026.07.11(SAT) 13:00~,0
@@ -71,6 +72,7 @@ date,team_tag,player_name,metric,period,value
 2026-07-26,CR,Winter,watch_time,may_early_2026,0
 2026-07-26,CR,Winter,watch_time,may_late_2026,260
 2026-07-26,CR,Winter,watch_time,regular_season,605
+2026-07-26,CR,Winter,youtube_subscribers,current,932
 2026-07-26,CR,ふぇぐ,followers,current,34312
 2026-07-26,CR,ふぇぐ,stream_duration,jul_early_2026,1.0
 2026-07-26,CR,ふぇぐ,stream_duration,jul_late_2026,2.1
@@ -86,6 +88,7 @@ date,team_tag,player_name,metric,period,value
 2026-07-26,CR,ふぇぐ,watch_time,jul_early_2026,80
 2026-07-26,CR,ふぇぐ,watch_time,jul_late_2026,770
 2026-07-26,CR,ふぇぐ,watch_time,regular_season,770
+2026-07-26,CR,ふぇぐ,youtube_subscribers,current,6260
 2026-07-26,CR,ふえた,followers,current,3723
 2026-07-26,CR,ふえた,ps_point,2026.07.11(SAT) 13:00~,1
 2026-07-26,CR,ふえた,ps_point,2026.07.15(WED) 18:30~,1
@@ -121,6 +124,7 @@ date,team_tag,player_name,metric,period,value
 2026-07-26,CR,ふえた,watch_time,may_early_2026,0
 2026-07-26,CR,ふえた,watch_time,may_late_2026,15
 2026-07-26,CR,ふえた,watch_time,regular_season,497
+2026-07-26,CR,ふえた,youtube_subscribers,current,1120
 2026-07-26,CR,空白,followers,current,3857
 2026-07-26,CR,空白,ps_point,2026.07.15(WED) 18:30~,1
 2026-07-26,CR,空白,ps_win,2026.07.15(WED) 18:30~,1
@@ -154,6 +158,7 @@ date,team_tag,player_name,metric,period,value
 2026-07-26,CR,空白,watch_time,may_early_2026,2243
 2026-07-26,CR,空白,watch_time,may_late_2026,1811
 2026-07-26,CR,空白,watch_time,regular_season,655
+2026-07-26,CR,空白,youtube_subscribers,current,1630
 2026-07-26,DFM,MingiGod,followers,current,3473
 2026-07-26,DFM,MingiGod,stream_duration,jul_early_2026,8.9
 2026-07-26,DFM,MingiGod,stream_duration,jul_late_2026,7.3
@@ -169,6 +174,7 @@ date,team_tag,player_name,metric,period,value
 2026-07-26,DFM,MingiGod,watch_time,jul_early_2026,996
 2026-07-26,DFM,MingiGod,watch_time,jul_late_2026,392
 2026-07-26,DFM,MingiGod,watch_time,regular_season,1392
+2026-07-26,DFM,MingiGod,youtube_subscribers,current,1660
 2026-07-26,DFM,かなで,followers,current,2138
 2026-07-26,DFM,かなで,ps_point,2026.07.11(SAT) 13:00~,0
 2026-07-26,DFM,かなで,ps_point,2026.07.22(WED) 17:30~,0
@@ -204,6 +210,7 @@ date,team_tag,player_name,metric,period,value
 2026-07-26,DFM,かなで,watch_time,may_early_2026,157
 2026-07-26,DFM,かなで,watch_time,may_late_2026,258
 2026-07-26,DFM,かなで,watch_time,regular_season,88
+2026-07-26,DFM,かなで,youtube_subscribers,current,542
 2026-07-26,DFM,ミル,followers,current,14538
 2026-07-26,DFM,ミル,ps_point,2026.07.11(SAT) 13:00~,1
 2026-07-26,DFM,ミル,ps_point,2026.07.22(WED) 17:30~,1
@@ -239,6 +246,7 @@ date,team_tag,player_name,metric,period,value
 2026-07-26,DFM,ミル,watch_time,may_early_2026,691
 2026-07-26,DFM,ミル,watch_time,may_late_2026,1363
 2026-07-26,DFM,ミル,watch_time,regular_season,484
+2026-07-26,DFM,ミル,youtube_subscribers,current,3950
 2026-07-26,DFM,ユーリ,followers,current,14142
 2026-07-26,DFM,ユーリ,ps_point,2026.07.11(SAT) 13:00~,1
 2026-07-26,DFM,ユーリ,ps_point,2026.07.22(WED) 17:30~,1
@@ -274,6 +282,7 @@ date,team_tag,player_name,metric,period,value
 2026-07-26,DFM,ユーリ,watch_time,may_early_2026,8667
 2026-07-26,DFM,ユーリ,watch_time,may_late_2026,11953
 2026-07-26,DFM,ユーリ,watch_time,regular_season,16444
+2026-07-26,DFM,ユーリ,youtube_subscribers,current,12300
 2026-07-26,LVH,Era53,followers,current,12632
 2026-07-26,LVH,Era53,ps_point,2026.07.12(SUN),1
 2026-07-26,LVH,Era53,ps_point,2026.07.15(WED) 18:30~,0
@@ -309,6 +318,7 @@ date,team_tag,player_name,metric,period,value
 2026-07-26,LVH,Era53,watch_time,may_early_2026,12339
 2026-07-26,LVH,Era53,watch_time,may_late_2026,54486
 2026-07-26,LVH,Era53,watch_time,regular_season,43805
+2026-07-26,LVH,Era53,youtube_subscribers,current,15800
 2026-07-26,LVH,Hirobosu,followers,current,2898
 2026-07-26,LVH,Hirobosu,stream_duration,jul_early_2026,0.0
 2026-07-26,LVH,Hirobosu,stream_duration,jul_late_2026,0.0
@@ -324,6 +334,7 @@ date,team_tag,player_name,metric,period,value
 2026-07-26,LVH,Hirobosu,watch_time,jul_early_2026,0
 2026-07-26,LVH,Hirobosu,watch_time,jul_late_2026,0
 2026-07-26,LVH,Hirobosu,watch_time,regular_season,0
+2026-07-26,LVH,Hirobosu,youtube_subscribers,current,446
 2026-07-26,LVH,rikka,followers,current,13593
 2026-07-26,LVH,rikka,ps_point,2026.07.12(SUN),1
 2026-07-26,LVH,rikka,ps_point,2026.07.15(WED) 18:30~,1
@@ -359,6 +370,7 @@ date,team_tag,player_name,metric,period,value
 2026-07-26,LVH,rikka,watch_time,may_early_2026,28442
 2026-07-26,LVH,rikka,watch_time,may_late_2026,2528
 2026-07-26,LVH,rikka,watch_time,regular_season,18976
+2026-07-26,LVH,rikka,youtube_subscribers,current,12400
 2026-07-26,LVH,だーよね,followers,current,3164
 2026-07-26,LVH,だーよね,ps_point,2026.07.12(SUN),1
 2026-07-26,LVH,だーよね,ps_point,2026.07.15(WED) 18:30~,1
@@ -394,6 +406,7 @@ date,team_tag,player_name,metric,period,value
 2026-07-26,LVH,だーよね,watch_time,may_early_2026,2621
 2026-07-26,LVH,だーよね,watch_time,may_late_2026,1566
 2026-07-26,LVH,だーよね,watch_time,regular_season,1776
+2026-07-26,LVH,だーよね,youtube_subscribers,current,1520
 2026-07-26,LVH,智念せいら,followers,current,15401
 2026-07-26,LVH,智念せいら,stream_duration,jul_early_2026,19.6
 2026-07-26,LVH,智念せいら,stream_duration,jul_late_2026,15.7
@@ -409,6 +422,7 @@ date,team_tag,player_name,metric,period,value
 2026-07-26,LVH,智念せいら,watch_time,jul_early_2026,30693
 2026-07-26,LVH,智念せいら,watch_time,jul_late_2026,19402
 2026-07-26,LVH,智念せいら,watch_time,regular_season,27507
+2026-07-26,LVH,智念せいら,youtube_subscribers,current,60599
 2026-07-26,MRG,Spicies,followers,current,32845
 2026-07-26,MRG,Spicies,ps_point,2026.07.12(SUN),1
 2026-07-26,MRG,Spicies,ps_point,2026.07.22(WED) 17:30~,1
@@ -444,6 +458,7 @@ date,team_tag,player_name,metric,period,value
 2026-07-26,MRG,Spicies,watch_time,may_early_2026,99977
 2026-07-26,MRG,Spicies,watch_time,may_late_2026,89154
 2026-07-26,MRG,Spicies,watch_time,regular_season,48161
+2026-07-26,MRG,Spicies,youtube_subscribers,current,42100
 2026-07-26,MRG,Toby,followers,current,18829
 2026-07-26,MRG,Toby,ps_point,2026.07.12(SUN),0
 2026-07-26,MRG,Toby,ps_point,2026.07.22(WED) 17:30~,1
@@ -479,6 +494,7 @@ date,team_tag,player_name,metric,period,value
 2026-07-26,MRG,Toby,watch_time,may_early_2026,28670
 2026-07-26,MRG,Toby,watch_time,may_late_2026,19931
 2026-07-26,MRG,Toby,watch_time,regular_season,10295
+2026-07-26,MRG,Toby,youtube_subscribers,current,16700
 2026-07-26,MRG,glory,followers,current,14905
 2026-07-26,MRG,glory,ps_point,2026.07.22(WED) 17:30~,1
 2026-07-26,MRG,glory,ps_win,2026.07.22(WED) 17:30~,1
@@ -512,6 +528,7 @@ date,team_tag,player_name,metric,period,value
 2026-07-26,MRG,glory,watch_time,may_early_2026,28275
 2026-07-26,MRG,glory,watch_time,may_late_2026,42240
 2026-07-26,MRG,glory,watch_time,regular_season,43596
+2026-07-26,MRG,glory,youtube_subscribers,current,7940
 2026-07-26,MRG,もっちゃま,followers,current,9850
 2026-07-26,MRG,もっちゃま,stream_duration,jul_early_2026,82.5
 2026-07-26,MRG,もっちゃま,stream_duration,jul_late_2026,33.2
@@ -527,6 +544,7 @@ date,team_tag,player_name,metric,period,value
 2026-07-26,MRG,もっちゃま,watch_time,jul_early_2026,116677
 2026-07-26,MRG,もっちゃま,watch_time,jul_late_2026,53485
 2026-07-26,MRG,もっちゃま,watch_time,regular_season,76533
+2026-07-26,MRG,もっちゃま,youtube_subscribers,current,17600
 2026-07-26,MRG,マイト,followers,current,11362
 2026-07-26,MRG,マイト,ps_point,2026.07.12(SUN),0
 2026-07-26,MRG,マイト,ps_win,2026.07.12(SUN),0
@@ -560,6 +578,7 @@ date,team_tag,player_name,metric,period,value
 2026-07-26,MRG,マイト,watch_time,may_early_2026,73329
 2026-07-26,MRG,マイト,watch_time,may_late_2026,80542
 2026-07-26,MRG,マイト,watch_time,regular_season,4788
+2026-07-26,MRG,マイト,youtube_subscribers,current,35900
 2026-07-26,RC,あぐのむ,followers,current,27322
 2026-07-26,RC,あぐのむ,ps_point,2026.07.22(WED) 17:30~,0
 2026-07-26,RC,あぐのむ,ps_win,2026.07.22(WED) 17:30~,0
@@ -593,6 +612,7 @@ date,team_tag,player_name,metric,period,value
 2026-07-26,RC,あぐのむ,watch_time,may_early_2026,7048
 2026-07-26,RC,あぐのむ,watch_time,may_late_2026,45
 2026-07-26,RC,あぐのむ,watch_time,regular_season,5311
+2026-07-26,RC,あぐのむ,youtube_subscribers,current,35400
 2026-07-26,RC,たばた,followers,current,11321
 2026-07-26,RC,たばた,ps_point,2026.07.12(SUN),0
 2026-07-26,RC,たばた,ps_point,2026.07.22(WED) 17:30~,1
@@ -628,6 +648,7 @@ date,team_tag,player_name,metric,period,value
 2026-07-26,RC,たばた,watch_time,may_early_2026,75
 2026-07-26,RC,たばた,watch_time,may_late_2026,101
 2026-07-26,RC,たばた,watch_time,regular_season,1270
+2026-07-26,RC,たばた,youtube_subscribers,current,3860
 2026-07-26,RC,つきあかめん,followers,current,3603
 2026-07-26,RC,つきあかめん,stream_duration,jul_early_2026,43.3
 2026-07-26,RC,つきあかめん,stream_duration,jul_late_2026,28.3
@@ -643,6 +664,7 @@ date,team_tag,player_name,metric,period,value
 2026-07-26,RC,つきあかめん,watch_time,jul_early_2026,17481
 2026-07-26,RC,つきあかめん,watch_time,jul_late_2026,10895
 2026-07-26,RC,つきあかめん,watch_time,regular_season,16831
+2026-07-26,RC,つきあかめん,youtube_subscribers,current,6790
 2026-07-26,RC,ぱらちゃん,followers,current,34703
 2026-07-26,RC,ぱらちゃん,ps_point,2026.07.12(SUN),1
 2026-07-26,RC,ぱらちゃん,ps_win,2026.07.12(SUN),1
@@ -676,6 +698,7 @@ date,team_tag,player_name,metric,period,value
 2026-07-26,RC,ぱらちゃん,watch_time,may_early_2026,54871
 2026-07-26,RC,ぱらちゃん,watch_time,may_late_2026,47272
 2026-07-26,RC,ぱらちゃん,watch_time,regular_season,26495
+2026-07-26,RC,ぱらちゃん,youtube_subscribers,current,45500
 2026-07-26,RC,拓海,followers,current,10223
 2026-07-26,RC,拓海,ps_point,2026.07.12(SUN),1
 2026-07-26,RC,拓海,ps_point,2026.07.22(WED) 17:30~,0
@@ -711,6 +734,7 @@ date,team_tag,player_name,metric,period,value
 2026-07-26,RC,拓海,watch_time,may_early_2026,2915
 2026-07-26,RC,拓海,watch_time,may_late_2026,978
 2026-07-26,RC,拓海,watch_time,regular_season,6156
+2026-07-26,RC,拓海,youtube_subscribers,current,5470
 2026-07-26,RDL,Chappy,followers,current,2547
 2026-07-26,RDL,Chappy,ps_point,2026.07.22(WED) 17:30~,0
 2026-07-26,RDL,Chappy,ps_win,2026.07.22(WED) 17:30~,0
@@ -743,6 +767,7 @@ date,team_tag,player_name,metric,period,value
 2026-07-26,RDL,Stylish_deko,watch_time,jul_early_2026,1858
 2026-07-26,RDL,Stylish_deko,watch_time,jul_late_2026,1017
 2026-07-26,RDL,Stylish_deko,watch_time,regular_season,1163
+2026-07-26,RDL,Stylish_deko,youtube_subscribers,current,468
 2026-07-26,RDL,ぱんさく,followers,current,1102
 2026-07-26,RDL,ぱんさく,ps_point,2026.07.12(SUN),0
 2026-07-26,RDL,ぱんさく,ps_win,2026.07.12(SUN),0
@@ -760,6 +785,7 @@ date,team_tag,player_name,metric,period,value
 2026-07-26,RDL,ぱんさく,watch_time,jul_early_2026,79
 2026-07-26,RDL,ぱんさく,watch_time,jul_late_2026,0
 2026-07-26,RDL,ぱんさく,watch_time,regular_season,37
+2026-07-26,RDL,ぱんさく,youtube_subscribers,current,196
 2026-07-26,RDL,山田レクイエム,followers,current,2054
 2026-07-26,RDL,山田レクイエム,ps_point,2026.07.12(SUN),0
 2026-07-26,RDL,山田レクイエム,ps_point,2026.07.22(WED) 17:30~,0
@@ -779,6 +805,7 @@ date,team_tag,player_name,metric,period,value
 2026-07-26,RDL,山田レクイエム,watch_time,jul_early_2026,0
 2026-07-26,RDL,山田レクイエム,watch_time,jul_late_2026,0
 2026-07-26,RDL,山田レクイエム,watch_time,regular_season,0
+2026-07-26,RDL,山田レクイエム,youtube_subscribers,current,300
 2026-07-26,RDL,折り紙,followers,current,5110
 2026-07-26,RDL,折り紙,ps_point,2026.07.12(SUN),0
 2026-07-26,RDL,折り紙,ps_point,2026.07.22(WED) 17:30~,0
@@ -814,6 +841,7 @@ date,team_tag,player_name,metric,period,value
 2026-07-26,RDL,折り紙,watch_time,may_early_2026,7528
 2026-07-26,RDL,折り紙,watch_time,may_late_2026,9118
 2026-07-26,RDL,折り紙,watch_time,regular_season,1917
+2026-07-26,RDL,折り紙,youtube_subscribers,current,14400
 2026-07-26,VRL,Mishadow51,followers,current,2929
 2026-07-26,VRL,Mishadow51,ps_point,2026.07.11(SAT) 13:00~,0
 2026-07-26,VRL,Mishadow51,ps_point,2026.07.15(WED) 18:30~,0
@@ -849,6 +877,7 @@ date,team_tag,player_name,metric,period,value
 2026-07-26,VRL,Mishadow51,watch_time,may_early_2026,0
 2026-07-26,VRL,Mishadow51,watch_time,may_late_2026,0
 2026-07-26,VRL,Mishadow51,watch_time,regular_season,0
+2026-07-26,VRL,Mishadow51,youtube_subscribers,current,25
 2026-07-26,VRL,Terarina,followers,current,3778
 2026-07-26,VRL,Terarina,ps_point,2026.07.11(SAT) 13:00~,0
 2026-07-26,VRL,Terarina,ps_point,2026.07.15(WED) 18:30~,0
@@ -884,6 +913,7 @@ date,team_tag,player_name,metric,period,value
 2026-07-26,VRL,Terarina,watch_time,may_early_2026,387
 2026-07-26,VRL,Terarina,watch_time,may_late_2026,381
 2026-07-26,VRL,Terarina,watch_time,regular_season,49
+2026-07-26,VRL,Terarina,youtube_subscribers,current,1770
 2026-07-26,VRL,monakawan,followers,current,1871
 2026-07-26,VRL,monakawan,ps_point,2026.07.15(WED) 18:30~,0
 2026-07-26,VRL,monakawan,ps_win,2026.07.15(WED) 18:30~,0
@@ -917,6 +947,7 @@ date,team_tag,player_name,metric,period,value
 2026-07-26,VRL,monakawan,watch_time,may_early_2026,0
 2026-07-26,VRL,monakawan,watch_time,may_late_2026,0
 2026-07-26,VRL,monakawan,watch_time,regular_season,262
+2026-07-26,VRL,monakawan,youtube_subscribers,current,366
 2026-07-26,VRL,まっつ,followers,current,4547
 2026-07-26,VRL,まっつ,ps_point,2026.07.11(SAT) 13:00~,1
 2026-07-26,VRL,まっつ,ps_win,2026.07.11(SAT) 13:00~,1
@@ -934,6 +965,7 @@ date,team_tag,player_name,metric,period,value
 2026-07-26,VRL,まっつ,watch_time,jul_early_2026,540
 2026-07-26,VRL,まっつ,watch_time,jul_late_2026,1435
 2026-07-26,VRL,まっつ,watch_time,regular_season,1472
+2026-07-26,VRL,まっつ,youtube_subscribers,current,1600
 2026-07-26,ZETA,CQCQ,followers,current,13731
 2026-07-26,ZETA,CQCQ,ps_point,2026.07.11(SAT) 13:00~,0
 2026-07-26,ZETA,CQCQ,ps_point,2026.07.15(WED) 18:30~,0
@@ -969,6 +1001,7 @@ date,team_tag,player_name,metric,period,value
 2026-07-26,ZETA,CQCQ,watch_time,may_early_2026,18546
 2026-07-26,ZETA,CQCQ,watch_time,may_late_2026,9708
 2026-07-26,ZETA,CQCQ,watch_time,regular_season,6539
+2026-07-26,ZETA,CQCQ,youtube_subscribers,current,13500
 2026-07-26,ZETA,TBT,followers,current,2561
 2026-07-26,ZETA,TBT,stream_duration,apr_late_2026,4.4
 2026-07-26,ZETA,TBT,stream_duration,jul_early_2026,3.8
@@ -1000,6 +1033,7 @@ date,team_tag,player_name,metric,period,value
 2026-07-26,ZETA,TBT,watch_time,may_early_2026,0
 2026-07-26,ZETA,TBT,watch_time,may_late_2026,2626
 2026-07-26,ZETA,TBT,watch_time,regular_season,896
+2026-07-26,ZETA,TBT,youtube_subscribers,current,1110
 2026-07-26,ZETA,ねぎま,followers,current,3220
 2026-07-26,ZETA,ねぎま,ps_point,2026.07.11(SAT) 13:00~,0
 2026-07-26,ZETA,ねぎま,ps_point,2026.07.15(WED) 18:30~,0
@@ -1019,6 +1053,7 @@ date,team_tag,player_name,metric,period,value
 2026-07-26,ZETA,ねぎま,watch_time,jul_early_2026,1479
 2026-07-26,ZETA,ねぎま,watch_time,jul_late_2026,6147
 2026-07-26,ZETA,ねぎま,watch_time,regular_season,6147
+2026-07-26,ZETA,ねぎま,youtube_subscribers,current,1470
 2026-07-26,ZETA,ヘイム,followers,current,6320
 2026-07-26,ZETA,ヘイム,ps_point,2026.07.11(SAT) 13:00~,1
 2026-07-26,ZETA,ヘイム,ps_point,2026.07.15(WED) 18:30~,1
@@ -1054,3 +1089,4 @@ date,team_tag,player_name,metric,period,value
 2026-07-26,ZETA,ヘイム,watch_time,may_early_2026,30598
 2026-07-26,ZETA,ヘイム,watch_time,may_late_2026,19810
 2026-07-26,ZETA,ヘイム,watch_time,regular_season,6538
+2026-07-26,ZETA,ヘイム,youtube_subscribers,current,5050
