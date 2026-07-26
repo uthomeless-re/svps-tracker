@@ -190,9 +190,25 @@ function handleAvatarError(imgEl) {
   imgEl.outerHTML = avatarFallbackHTML(player, size);
 }
 
+// チームの略称テキストだけの色付きバッジ（チームロゴ画像が無い場合のフォールバック用）。
 function teamBadgeHTML(teamTag) {
   const color = TEAM_COLORS[teamTag] || "#888";
-  return `<span class="team-badge" style="background:${color}">${teamTag}</span>`;
+  return `<span class="team-badge" style="background:${color}">${teamTag || "?"}</span>`;
+}
+
+// 提供された各チームの公式ロゴ画像ファイル名（site/images/teams/ 配下）。
+const TEAM_LOGO_FILES = {
+  CR: "cr.png", ZETA: "zeta.png", DFM: "dfm.png", VRL: "vrl.png",
+  MRG: "mrg.png", RC: "rc.png", RDL: "rdl.png", LVH: "lvh.png",
+};
+
+// チームロゴ画像を表示する。対戦相手が不明("?"など)でロゴが無い場合は
+// 従来の色付きテキストバッジにフォールバックする。
+function teamLogoHTML(teamTag, size) {
+  size = size || 28;
+  const file = TEAM_LOGO_FILES[teamTag];
+  if (!file) return teamBadgeHTML(teamTag);
+  return `<img class="team-logo" src="images/teams/${file}" width="${size}" height="${size}" alt="${escapeAttr(teamTag)}" title="${escapeAttr(teamTag)}">`;
 }
 
 // data/match_results.csv を読み込む（存在しない/まだ試合が無い場合は空配列を返す）。

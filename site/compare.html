@@ -98,7 +98,7 @@ function renderChips() {
   const wrap = document.getElementById("playerChips");
   wrap.innerHTML = players.map(p => `
     <span class="player-chip ${selected.has(p.player_name) ? "active" : ""}" data-name="${encodeURIComponent(p.player_name)}">
-      ${teamBadgeHTML(p.team_tag)}${p.player_name}
+      ${teamLogoHTML(p.team_tag, 16)}${p.player_name}
     </span>`).join("");
   wrap.querySelectorAll(".player-chip").forEach(chip => {
     chip.addEventListener("click", () => {
@@ -119,7 +119,7 @@ function renderTeamButtons() {
     const allSelected = teamPlayers.every(p => selected.has(p.player_name));
     const color = TEAM_COLORS[t] || "#888";
     return `<button class="team-select-btn ${allSelected ? "active" : ""}" data-team="${t}"
-      style="${allSelected ? `background:${color};` : ""}">${t}チーム全員</button>`;
+      style="${allSelected ? `background:${color};` : ""}">${teamLogoHTML(t, 16)}${t}チーム全員</button>`;
   }).join("");
   wrap.querySelectorAll(".team-select-btn").forEach(btn => {
     btn.addEventListener("click", () => {

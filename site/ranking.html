@@ -156,7 +156,7 @@ async function boot() {
       return `
         <tr>
           <td><span class="rank-num ${rankClass}">${i + 1}</span></td>
-          <td>${teamBadgeHTML(r.player.team_tag)}</td>
+          <td>${teamLogoHTML(r.player.team_tag, 22)}</td>
           <td>
             <a class="player-link" href="player.html?name=${encodeURIComponent(r.player.player_name)}">
               ${avatarHTML(r.player, images, 24)}
@@ -170,7 +170,7 @@ async function boot() {
     const unrankedBody = withoutValue.map(r => `
         <tr>
           <td><span class="rank-num">-</span></td>
-          <td>${teamBadgeHTML(r.player.team_tag)}</td>
+          <td>${teamLogoHTML(r.player.team_tag, 22)}</td>
           <td>
             <a class="player-link" href="player.html?name=${encodeURIComponent(r.player.player_name)}">
               ${avatarHTML(r.player, images, 24)}

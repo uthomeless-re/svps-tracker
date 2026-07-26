@@ -5,6 +5,8 @@
   --border: #e5e7eb;
   --accent: #2f6fed;
   --accent-soft: #eaf1ff;
+  --header-bg: #14161f;
+  --header-accent: #ff3b3b;
 }
 * { box-sizing: border-box; }
 body {
@@ -13,28 +15,34 @@ body {
   color: var(--text);
   margin: 0;
 }
+/* ヘッダーはダーク背景+アクセントラインで、白背景一色のダッシュボード感を薄める狙い。
+   ナビも塗りつぶしピルではなく、下線タブ形式（スポーツ系サイトでよくある形）にしている。 */
 header {
   position: sticky; top: 0; z-index: 10;
-  background: #fff;
-  border-bottom: 1px solid var(--border);
+  background: var(--header-bg);
+  border-bottom: 3px solid var(--header-accent);
   padding: 14px 24px;
   display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;
 }
-header h1 { font-size: 16px; margin: 0; font-weight: 600; }
+header h1 { font-size: 15px; margin: 0; font-weight: 700; letter-spacing: .01em; color: #fff; }
 header h1 a { color: inherit; text-decoration: none; }
-nav { display: flex; gap: 6px; }
+nav { display: flex; gap: 4px; }
 nav a.nav-btn {
-  border: 1px solid var(--border);
-  background: #fff;
-  color: var(--text-muted);
-  padding: 7px 16px;
-  border-radius: 999px;
+  border: none;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  color: rgba(255,255,255,.6);
+  padding: 8px 14px 6px;
+  border-radius: 0;
   font-size: 13px;
+  font-weight: 600;
   cursor: pointer;
   text-decoration: none;
   display: inline-block;
+  transition: color .15s ease, border-color .15s ease;
 }
-nav a.nav-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+nav a.nav-btn:hover { color: #fff; }
+nav a.nav-btn.active { background: transparent; border-bottom-color: var(--header-accent); color: #fff; }
 main { max-width: 980px; margin: 0 auto; padding: 24px; }
 .error-banner {
   background: #fff4f4; border: 1px solid #f3b4b4; color: #a33; padding: 12px 14px;
@@ -43,6 +51,9 @@ main { max-width: 980px; margin: 0 auto; padding: 24px; }
 .team-badge {
   display: inline-block; font-size: 11px; font-weight: 600; color: #fff;
   padding: 2px 8px; border-radius: 999px; letter-spacing: .02em;
+}
+.team-logo {
+  display: inline-block; object-fit: contain; vertical-align: middle;
 }
 
 /* 選手写真・アバター（写真が無い/読み込み失敗時はイニシャル入りの色付き四角で代替） */
