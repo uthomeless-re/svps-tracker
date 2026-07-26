@@ -168,3 +168,12 @@ table.rank-table th.sortable:hover { color: var(--text); }
 table.rank-table th.sortable .sort-arrow { display: inline-block; width: 10px; opacity: .45; font-size: 10px; margin-left: 2px; }
 table.rank-table th.sortable.active .sort-arrow { opacity: 1; color: var(--accent); }
 tr.team-row-stripe { border-left: 3px solid transparent; }
+
+/* ranking.html: フォロワー数/登録者数の行末に出すX/YTリンク。指標を切り替えても
+   幅がガタつかないよう固定幅・中央揃えのバッジ風にしている。 */
+td.ext-link-cell { width: 44px; text-align: center; }
+a.ext-link {
+  display: inline-block; min-width: 28px; padding: 3px 6px; border-radius: 6px;
+  font-size: 11px; font-weight: 600; text-align: center; text-decoration: none;
+  background: var(--accent-soft); color: var(--accent);
+}

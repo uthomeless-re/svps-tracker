@@ -32,6 +32,28 @@ const RESULT_ID_TO_TAG = {
   1: "CR", 2: "ZETA", 3: "DFM", 4: "VRL", 5: "MRG", 6: "RC", 7: "RDL", 8: "LVH",
 };
 
+// history.csvのperiod列は"jul_early_2026"や"regular_season"のような内部キー（英語）を
+// そのまま保存している。以前はこれをそのままセレクトボックスやグラフの軸ラベルに出して
+// いたため、UI上に生の英語キーが出てしまっていた。表示用に日本語ラベルへ変換する。
+const MONTH_NUM = { jan: 1, feb: 2, mar: 3, apr: 4, may: 5, jun: 6, jul: 7, aug: 8, sep: 9, oct: 10, nov: 11, dec: 12 };
+const PERIOD_LABELS = { current: "現在", regular_season: "レギュラーシーズン", cumulative_to_date: "通算" };
+
+function periodLabel(period) {
+  if (PERIOD_LABELS[period]) return PERIOD_LABELS[period];
+  const m = String(period).match(/^([a-z]{3})_(early|late)_\d{4}$/);
+  if (m && MONTH_NUM[m[1]]) return `${MONTH_NUM[m[1]]}月${m[2] === "early" ? "前半" : "後半"}`;
+  return period; // 未知の形式はそのまま（フォールバック）
+}
+
+// 隔週periodを時系列順に並べるための数値キー。表示ラベル（"4月後半"等）の文字列ソートだと
+// 桁数の関係で10月以降に順序が崩れるため、生のperiod文字列から直接計算する。
+function periodSortKey(period) {
+  if (period === "regular_season") return -1;
+  const m = String(period).match(/^([a-z]{3})_(early|late)_(\d{4})$/);
+  if (m && MONTH_NUM[m[1]]) return parseInt(m[3], 10) * 100 + MONTH_NUM[m[1]] * 10 + (m[2] === "early" ? 0 : 1);
+  return 0;
+}
+
 // クラス名 → アイコンファイル名（アップロードされた公式クラスアイコンを使用）
 const CLASS_ICONS = {
   "エルフ": "class_elf.svg",

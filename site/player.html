@@ -30,6 +30,10 @@ function drawChart(history, name, metric, color) {
   if (metric === "stream_duration_cumulative") {
     // 隔週の生値をそのまま繋いでも意味がないので、時系列に積み上げた累積値を表示する
     ({ labels, data } = buildCumulativeSeries(history, name, "stream_duration"));
+    // periodは"jul_early_2026"のような内部キー（英語）なので、グラフの軸に出す前に
+    // 日本語ラベルに変換する（並び順はここまでの時点で既に時系列順になっているので、
+    // 変換してもソート順は崩れない）。
+    labels = labels.map(periodLabel);
   } else {
     const rows = history.filter(r => r.player_name === name && r.metric === metric).slice().sort((a, b) => a.date < b.date ? -1 : 1);
     labels = rows.map(r => r.date);

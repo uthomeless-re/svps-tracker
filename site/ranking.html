@@ -41,9 +41,10 @@ function isCurrentMetric(m) { return CURRENT_METRICS.includes(m); }
 function isCumulativeMetric(m) { return m === "stream_duration_cumulative"; }
 function isCrMetric(m) { return m === "cr_topN_count"; }
 
-// フォロワー数/登録者数の行の右端に、その選手のX/YouTubeへのリンクを出すための対応表
+// フォロワー数/登録者数の行の右端に、その選手のX/YouTubeへのリンクを出すための対応表。
+// ラベルはX/YTで文字数を揃え、指標を切り替えてもリンク列の見た目（幅）が変わらないようにしている。
 const CURRENT_METRIC_LINK_FIELD = { followers: "x_url", youtube_subscribers: "youtube_url" };
-const CURRENT_METRIC_LINK_LABEL = { followers: "X", youtube_subscribers: "YouTube" };
+const CURRENT_METRIC_LINK_LABEL = { followers: "X", youtube_subscribers: "YT" };
 
 async function boot() {
   const app = document.getElementById("app");
@@ -112,8 +113,8 @@ async function boot() {
     thresholdGroup.style.display = isCrMetric(metric) ? "" : "none";
     if (needsPeriod) {
       const periods = [...new Set(history.filter(r => r.metric === metric).map(r => r.period))];
-      periods.sort();
-      periodSelect.innerHTML = periods.map(p => `<option value="${p}">${p}</option>`).join("");
+      periods.sort((a, b) => periodSortKey(a) - periodSortKey(b));
+      periodSelect.innerHTML = periods.map(p => `<option value="${p}">${periodLabel(p)}</option>`).join("");
       if (periods.length) periodSelect.value = periods[periods.length - 1];
     }
   }
@@ -162,15 +163,16 @@ async function boot() {
     withValue.sort((a, b) => lowerBetter ? a.value - b.value : b.value - a.value);
 
     // フォロワー数/登録者数のランキングでは、行の右端にその選手のX/YouTubeへの
-    // リンクを添える（見た数値をそのまま確認しにいけるように）。
+    // リンクを添える（見た数値をそのまま確認しにいけるように）。この列は指標を切り替えても
+    // 常に出しておく（該当リンクが無い指標では空セルにする）ことで、指標を切り替えるたびに
+    // 表の列数・幅が変わってガタつくのを防いでいる。
     const linkField = CURRENT_METRIC_LINK_FIELD[metric];
     const linkLabel = CURRENT_METRIC_LINK_LABEL[metric];
     const linkCellHTML = p => {
-      if (!linkField) return "";
-      const url = p[linkField];
-      return `<td>${url ? `<a href="${url}" target="_blank" rel="noopener" style="font-size:12px;">${linkLabel}</a>` : ""}</td>`;
+      const url = linkField ? p[linkField] : null;
+      return `<td class="ext-link-cell">${url ? `<a class="ext-link" href="${url}" target="_blank" rel="noopener">${linkLabel}</a>` : ""}</td>`;
     };
-    const linkHeaderHTML = linkField ? "<th></th>" : "";
+    const linkHeaderHTML = "<th></th>";
 
     const medal = ["gold", "silver", "bronze"];
     const rankedBody = withValue.map((r, i) => {

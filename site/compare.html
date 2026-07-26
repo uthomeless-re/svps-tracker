@@ -44,7 +44,10 @@ function drawCompareChart() {
   const metric = document.getElementById("metricSelect").value;
   const names = [...selected];
 
-  // 選手ごとにX軸(labels)が違う可能性があるので、全員分のlabelsを合成してから各系列をそこに合わせる
+  // 選手ごとにX軸(labels)が違う可能性があるので、全員分のlabelsを合成してから各系列をそこに合わせる。
+  // ここではまだ生のキー（累積配信時間ならperiod文字列"jul_early_2026"、それ以外は日付）のまま
+  // 扱う。表示用の日本語変換は、並び替えが終わったあとの最後の一手だけにする（先に変換すると
+  // "10月"のような2桁月が出てきたときに文字列ソートで順序が崩れるため）。
   const allLabelsSet = new Set();
   const seriesByName = {};
   names.forEach(name => {
@@ -52,7 +55,9 @@ function drawCompareChart() {
     seriesByName[name] = s;
     s.labels.forEach(l => allLabelsSet.add(l));
   });
-  const labels = [...allLabelsSet].sort();
+  const isCumulative = metric === "stream_duration_cumulative";
+  const rawLabels = [...allLabelsSet].sort(isCumulative ? (a, b) => periodSortKey(a) - periodSortKey(b) : undefined);
+  const labels = isCumulative ? rawLabels.map(periodLabel) : rawLabels;
 
   const datasets = names.map((name) => {
     const s = seriesByName[name];
@@ -64,7 +69,7 @@ function drawCompareChart() {
     const color = (player && TEAM_COLORS[player.team_tag]) || "#888";
     return {
       label: name,
-      data: labels.map(l => byLabel[l] ?? null),
+      data: rawLabels.map(l => byLabel[l] ?? null),
       borderColor: color,
       backgroundColor: color,
       spanGaps: true,
@@ -162,6 +167,7 @@ function hexToRgba(hex, alpha) {
 }
 
 function buildTableRows(players, history, images, matches, svlabo) {
+  const cr100Counts = crTopNCounts(svlabo, 100);
   return players.map(player => {
     const streamSeries = buildCumulativeSeries(history, player.player_name, "stream_duration");
     const videoSeries = buildCumulativeSeries(history, player.player_name, "video_upload_count");
@@ -178,6 +184,7 @@ function buildTableRows(players, history, images, matches, svlabo) {
       // 以前はhistory.csvのcr_best_rank_overallを見ていたが、これは手動スクレイピングを
       // 実行した選手（Atomのみ）にしか値が入っておらず、他の選手が軒並み「-」になっていた。
       crRank: crBestRankForPlayer(svlabo, player),
+      cr100: crCountForPlayer(cr100Counts, player),
     };
   });
 }
@@ -189,25 +196,28 @@ const TABLE_COLUMNS = [
   { key: "name", label: "名前", defaultDir: "asc",
     sortValue: r => r.player.player_name || "",
     render: r => `<a class="player-link" href="player.html?name=${encodeURIComponent(r.player.player_name)}">${avatarHTML(r.player, r.images, 22)}${r.player.player_name}</a>` },
-  { key: "followers", label: "Xフォロワー数", defaultDir: "desc",
+  { key: "followers", label: "フォロワー", defaultDir: "desc",
     sortValue: r => r.followers ?? -1,
     render: r => r.followers != null ? fmtNum(r.followers) : "-" },
-  { key: "yt", label: "YT登録者数", defaultDir: "desc",
+  { key: "yt", label: "登録者", defaultDir: "desc",
     sortValue: r => r.yt ?? -1,
     render: r => r.yt != null ? fmtNum(r.yt) : "-" },
-  { key: "ps", label: "PS戦績", defaultDir: "desc",
+  { key: "ps", label: "PS", defaultDir: "desc",
     sortValue: r => r.stats.points,
     render: r => r.stats.played ? `${r.stats.wins}勝${r.stats.losses}敗` : "-" },
-  { key: "stream", label: "累積配信時間", defaultDir: "desc",
+  { key: "stream", label: "配信時間", defaultDir: "desc",
     sortValue: r => r.streamTotal ?? -1,
     render: r => r.streamTotal != null ? fmtNum(r.streamTotal) + "h" : "-" },
-  { key: "videos", label: "累積動画投稿数", defaultDir: "desc",
+  { key: "videos", label: "動画投稿数", defaultDir: "desc",
     sortValue: r => r.videoTotal ?? -1,
     render: r => r.videoTotal != null ? fmtNum(r.videoTotal) : "-" },
-  { key: "crrank", label: "ランクマッチ最高順位", defaultDir: "asc",
+  { key: "crrank", label: "最高順位", defaultDir: "asc",
     sortValue: r => r.crRank ?? Infinity,
     render: r => r.crRank != null ? fmtNum(r.crRank) + "位" : "-" },
-  { key: "x", label: "Xアカウント", defaultDir: "asc",
+  { key: "cr100", label: "ビヨンド回数(100位以内)", defaultDir: "desc",
+    sortValue: r => r.cr100,
+    render: r => fmtNum(r.cr100) },
+  { key: "x", label: "X", defaultDir: "asc",
     sortValue: r => r.player.x_url ? 0 : 1,
     render: r => r.player.x_url ? `<a href="${r.player.x_url}" target="_blank" rel="noopener">${xHandleFromUrl(r.player.x_url)}</a>` : "-" },
 ];
