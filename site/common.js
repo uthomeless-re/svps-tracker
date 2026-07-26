@@ -6,6 +6,9 @@ const PLAYERS_URL = "data/players.csv";
 const IMAGES_MANIFEST_URL = "data/player_images.json";
 const MATCHES_URL = "data/match_results.csv";
 const RESULT_JSON_URL = "data/result.json";
+const SVLABO_URL = "data/svlabo_leaderboards.csv";
+// CR(ランクマッチ)順位の「TOP N入り回数」ランキングで選べるしきい値の候補
+const CR_TOPN_THRESHOLDS = [10, 30, 50, 100];
 
 // data/result.json の id (1〜8) と team_tag の対応。teams.json由来の並び順に合わせている。
 const RESULT_ID_TO_TAG = {
@@ -71,6 +74,10 @@ function fmtNum(v) {
 }
 
 function parseCSV(text) {
+  // svlabo_leaderboards.csv などUTF-8 BOM付きで保存されているファイルがあるため、
+  // 先頭のBOMを除去してからパースする（除去しないと1列目のヘッダ名が「﻿period」の
+  // ようになり、その列だけ参照できなくなる）。
+  if (text.charCodeAt(0) === 0xFEFF) text = text.slice(1);
   const lines = text.replace(/\r/g, "").split("\n").filter(l => l.length > 0);
   const headers = lines[0].split(",");
   return lines.slice(1).map(line => {
@@ -190,6 +197,36 @@ function summarizeMatches(matches, playerName) {
   const losses = rows.filter(r => r.result === "LOSE").length;
   const points = rows.reduce((sum, r) => sum + (parseFloat(r.point) || 0), 0);
   return { played: rows.length, wins, losses, points, winRate: rows.length ? wins / rows.length : null };
+}
+
+// data/svlabo_leaderboards.csv（svlabo.jpから一括取得したランクマッチ全ユーザー分の
+// period × class 別リーダーボード）を読み込む。取得できない場合は空配列を返す。
+async function loadSvlaboLeaderboard() {
+  try {
+    const resp = await fetch(SVLABO_URL);
+    if (!resp.ok) return [];
+    return parseCSV(await resp.text());
+  } catch (e) {
+    return [];
+  }
+}
+
+// 選手ごとに「ランクマッチ順位がthreshold位以内だった回数」を数える。
+// 1人の選手が複数の期間・複数のクラスでtop100入りしていれば、その分だけ加算される
+// （＝「通算で何回入賞級の順位を取ったか」を表す回数ランキング）。
+function crTopNCounts(leaderboard, threshold) {
+  const counts = {};
+  leaderboard.forEach(r => {
+    const rank = parseInt(r.rank, 10);
+    if (!Number.isNaN(rank) && rank <= threshold) {
+      counts[r.player_name] = (counts[r.player_name] || 0) + 1;
+    }
+  });
+  return counts;
+}
+
+function crTopNLabel(threshold) {
+  return `CR順位 TOP${threshold}入り回数`;
 }
 
 // data/result.json を読み込む（手動更新される公式チーム順位。無ければnullを返す）。

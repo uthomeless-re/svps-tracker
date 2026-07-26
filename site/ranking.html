@@ -22,75 +22,130 @@
 
 <script src="common.js"></script>
 <script>
+// 指標は3種類に分類して扱う。
+// 1. CURRENT_METRICS: 「現在値」であり、期間ごとに見る意味がないもの（フォロワー数・登録者数など）。
+//    折れ線としては価値があるが、ランキングで過去の特定期間を指定して見るものではないため、
+//    ここでは常に最新値でランキングし、期間セレクトボックス自体を表示しない。
+// 2. 通常の期間指標（stream_duration, watch_time, video_view_count, video_upload_count など）は
+//    従来通り期間セレクトボックスで絞り込む。
+// 3. 仮想指標:
+//    - stream_duration_cumulative: 隔週の生値ではなく「これまでの合計配信時間」でランキングする。
+//      期間を指定する意味がないので期間セレクトボックスは出さない。
+//    - cr_topN_count: svlabo.jpのランクマッチ順位データ（data/svlabo_leaderboards.csv）から、
+//      「順位が指定しきい値(10/30/50/100)以内だった回数」でランキングする。期間ではなく
+//      しきい値を選ぶ専用のセレクトボックスに差し替える。
+const CURRENT_METRICS = ["followers", "youtube_subscribers"];
+const EXCLUDED_PREFIXES = ["ps_win", "ps_point", "cr_"]; // PS戦績はmatches.html、cr_*(生データ)はcr_topN_countに統合
+
+function isCurrentMetric(m) { return CURRENT_METRICS.includes(m); }
+function isCumulativeMetric(m) { return m === "stream_duration_cumulative"; }
+function isCrMetric(m) { return m === "cr_topN_count"; }
+
 async function boot() {
   const app = document.getElementById("app");
-  let data;
+  let data, svlabo;
   try {
-    data = await loadData();
+    [data, svlabo] = await Promise.all([loadData(), loadSvlaboLeaderboard()]);
   } catch (err) {
     app.innerHTML = `<div class="error-banner">データ読み込みエラー: ${err.message}</div>`;
     return;
   }
   const { players, history, images } = data;
-  const playerByName = {};
-  players.forEach(p => playerByName[p.player_name] = p);
 
-  // ランキング対象は「自動パイプラインで継続的に更新される、期間ごとの値」の指標に限定する。
-  // PS戦績（ps_win/ps_point）はラウンド単位のスナップショットなのでここでは扱わず、
-  // 通算成績としてmatches.htmlに出す。ランクマッチ関連（cr_*）は手動運用でデータが
-  // 疎らなため、ここに出すと一部選手しか表示されない紛らわしい結果になるので除外する。
-  const EXCLUDED_PREFIXES = ["ps_win", "ps_point", "cr_"];
-  const allMetrics = [...new Set(history.map(r => r.metric))]
-    .filter(m => !EXCLUDED_PREFIXES.some(p => m.startsWith(p)))
-    .sort((a, b) => {
-      const pref = ["followers", "youtube_subscribers"];
-      const ia = pref.indexOf(a), ib = pref.indexOf(b);
-      if (ia !== -1 || ib !== -1) return (ia === -1 ? 99 : ia) - (ib === -1 ? 99 : ib);
-      return a.localeCompare(b);
-    });
+  const periodicMetrics = [...new Set(history.map(r => r.metric))]
+    .filter(m => !EXCLUDED_PREFIXES.some(p => m.startsWith(p)) && !isCurrentMetric(m))
+    .sort((a, b) => a.localeCompare(b));
+  const hasStreamDuration = periodicMetrics.includes("stream_duration");
+  const hasCrData = svlabo.length > 0;
+
+  const currentOptions = CURRENT_METRICS.filter(m => history.some(r => r.metric === m))
+    .map(m => `<option value="${m}">${metricLabel(m)}</option>`).join("");
+  const periodicOptions = periodicMetrics.map(m => `<option value="${m}">${metricLabel(m)}</option>`).join("");
+  const cumulativeOptions = hasStreamDuration
+    ? `<option value="stream_duration_cumulative">${metricLabel("stream_duration_cumulative")}</option>` : "";
+  const crOptions = hasCrData ? `<option value="cr_topN_count">CR順位 TOP N入り回数</option>` : "";
 
   app.innerHTML = `
     <div class="control-row">
       <div class="control-group">
         <label>指標</label>
-        <select id="rankMetricSelect">${allMetrics.map(m => `<option value="${m}">${metricLabel(m)}</option>`).join("")}</select>
+        <select id="rankMetricSelect">
+          ${currentOptions ? `<optgroup label="現在値">${currentOptions}</optgroup>` : ""}
+          ${periodicOptions ? `<optgroup label="期間ごとの指標">${periodicOptions}</optgroup>` : ""}
+          ${cumulativeOptions ? `<optgroup label="通算">${cumulativeOptions}</optgroup>` : ""}
+          ${crOptions ? `<optgroup label="ランクマッチ(CR)">${crOptions}</optgroup>` : ""}
+        </select>
       </div>
-      <div class="control-group">
+      <div class="control-group" id="periodGroup">
         <label>期間</label>
         <select id="rankPeriodSelect"></select>
+      </div>
+      <div class="control-group" id="thresholdGroup" style="display:none;">
+        <label>しきい値</label>
+        <select id="rankThresholdSelect">${CR_TOPN_THRESHOLDS.map(t => `<option value="${t}">TOP${t}以内</option>`).join("")}</select>
       </div>
     </div>
     <div id="rankTableWrap"></div>
   `;
 
   const metricSelect = document.getElementById("rankMetricSelect");
+  const periodGroup = document.getElementById("periodGroup");
   const periodSelect = document.getElementById("rankPeriodSelect");
+  const thresholdGroup = document.getElementById("thresholdGroup");
+  const thresholdSelect = document.getElementById("rankThresholdSelect");
 
-  function refreshPeriods() {
+  function refreshControls() {
     const metric = metricSelect.value;
-    const periods = [...new Set(history.filter(r => r.metric === metric).map(r => r.period))];
-    periods.sort();
-    periodSelect.innerHTML = periods.map(p => `<option value="${p}">${p}</option>`).join("");
-    if (periods.length) periodSelect.value = periods[periods.length - 1];
+    const needsPeriod = !isCurrentMetric(metric) && !isCumulativeMetric(metric) && !isCrMetric(metric);
+    periodGroup.style.display = needsPeriod ? "" : "none";
+    thresholdGroup.style.display = isCrMetric(metric) ? "" : "none";
+    if (needsPeriod) {
+      const periods = [...new Set(history.filter(r => r.metric === metric).map(r => r.period))];
+      periods.sort();
+      periodSelect.innerHTML = periods.map(p => `<option value="${p}">${p}</option>`).join("");
+      if (periods.length) periodSelect.value = periods[periods.length - 1];
+    }
   }
 
   function drawTable() {
     const metric = metricSelect.value;
-    const period = periodSelect.value;
-    const lowerBetter = isLowerBetter(metric);
+    let lowerBetter = isLowerBetter(metric);
+    let headerLabel = metricLabel(metric);
+    const valueByPlayer = {};
+
+    if (isCrMetric(metric)) {
+      const threshold = parseInt(thresholdSelect.value, 10);
+      headerLabel = crTopNLabel(threshold);
+      lowerBetter = false;
+      const counts = crTopNCounts(svlabo, threshold);
+      players.forEach(p => { valueByPlayer[p.player_name] = counts[p.player_name] || 0; });
+    } else if (isCumulativeMetric(metric)) {
+      lowerBetter = false;
+      players.forEach(p => {
+        const { data: series } = buildCumulativeSeries(history, p.player_name, "stream_duration");
+        if (series.length) valueByPlayer[p.player_name] = series[series.length - 1];
+      });
+    } else if (isCurrentMetric(metric)) {
+      players.forEach(p => {
+        const v = latestValue(history, p.player_name, metric);
+        if (v != null) valueByPlayer[p.player_name] = v;
+      });
+    } else {
+      const period = periodSelect.value;
+      history.filter(r => r.metric === metric && r.period === period).forEach(r => {
+        valueByPlayer[r.player_name] = r.value;
+      });
+    }
 
     // その指標のデータを持つ選手だけでなく、players.csvの全選手を対象にする。
-    // データが無い選手は"-"表示で末尾に回す（「読み込んだ選手しか出ない」状態にしない）。
-    const valueByPlayer = {};
-    history.filter(r => r.metric === metric && r.period === period).forEach(r => {
-      valueByPlayer[r.player_name] = r.value;
-    });
-
+    // データが無い選手（0回・未計測含む）は"-"表示で末尾に回す（cr_topN_countの0回は
+    // 「値がある」とみなしてランキングに含める＝ withValue 扱いにする）。
     const withValue = [];
     const withoutValue = [];
     players.forEach(p => {
       const v = valueByPlayer[p.player_name];
-      if (v != null && v !== "") withValue.push({ player: p, value: parseFloat(v) });
+      const hasValue = isCrMetric(metric) ? v != null : (v != null && v !== "");
+      if (hasValue) withValue.push({ player: p, value: parseFloat(v) });
       else withoutValue.push({ player: p, value: null });
     });
     withValue.sort((a, b) => lowerBetter ? a.value - b.value : b.value - a.value);
@@ -127,15 +182,16 @@ async function boot() {
 
     document.getElementById("rankTableWrap").innerHTML = `
       <table class="rank-table">
-        <thead><tr><th>#</th><th>チーム</th><th>選手</th><th>${metricLabel(metric)}</th></tr></thead>
+        <thead><tr><th>#</th><th>チーム</th><th>選手</th><th>${headerLabel}</th></tr></thead>
         <tbody>${rankedBody}${unrankedBody}</tbody>
       </table>`;
   }
 
-  metricSelect.addEventListener("change", () => { refreshPeriods(); drawTable(); });
+  metricSelect.addEventListener("change", () => { refreshControls(); drawTable(); });
   periodSelect.addEventListener("change", drawTable);
+  thresholdSelect.addEventListener("change", drawTable);
 
-  refreshPeriods();
+  refreshControls();
   drawTable();
 }
 

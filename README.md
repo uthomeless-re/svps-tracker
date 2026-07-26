@@ -35,7 +35,8 @@ svps-tracker/
 │   ├── match_results.csv       PS公式戦の個人試合結果（1試合1行。詳細は「試合結果について」参照）
 │   ├── player_images.json      選手名→写真パスのマッピング（scrape_player_images.pyが自動生成）
 │   ├── svlabo_leaderboards.csv  svlabo.jpの全ユーザー分を一括取得した手動作業の成果物
-│   │                             （period, class, rank, team_tag, player_name, rating の列。history.csvとは別管理・自動更新はされない）
+│   │                             （period, class, rank, team_tag, player_name, rating の列。history.csvとは別管理・自動更新はされない。
+│   │                             ranking.htmlの「CR順位 TOP N入り回数」ランキングが参照する）
 │   └── snapshots/               日次の生スクレイピング結果（デバッグ用、実行のたびに増える）
 └── site/                        表示用ページ。ページごとにファイルを分けており、今後ページを
     ├── style.css                  増やしたり構成を変えたりしやすい作りにしてある
@@ -75,6 +76,7 @@ svps-tracker/
      上書きされずそのまま残る）
    - `README.md`
    - `data/players.csv`
+   - `data/svlabo_leaderboards.csv`（一括取得した手動作業の成果物。日々のActionsでは更新されないため上書きしても安全）
 3. `data/history.csv` / `data/match_results.csv` / `data/player_images.json` /
    `data/snapshots/` / `data/result.json`（手動更新を始めている場合）には一切触れない・
    コピー対象に含めない
