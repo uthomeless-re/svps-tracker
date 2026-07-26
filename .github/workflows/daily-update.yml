@@ -43,6 +43,13 @@ jobs:
         run: python scrape_ps_results.py
         continue-on-error: true
 
+      - name: Scrape YouTube subscriber counts
+        working-directory: scripts
+        run: python scrape_youtube.py
+        continue-on-error: true
+        env:
+          YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
+
       - name: Merge into history.csv
         working-directory: scripts
         run: python update_history.py
