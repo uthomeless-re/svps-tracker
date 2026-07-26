@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>選手比較 | Shadowverse Premier Series 26-27 選手データトラッカー</title>
+<link rel="stylesheet" href="style.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+</head>
+<body>
+<header>
+  <h1><a href="index.html">Shadowverse Premier Series 26-27 選手データトラッカー</a></h1>
+  <nav>
+    <a class="nav-btn" href="index.html">選手一覧</a>
+    <a class="nav-btn" href="ranking.html">ランキング</a>
+    <a class="nav-btn" href="matches.html">試合結果</a>
+    <a class="nav-btn active" href="compare.html">比較</a>
+  </nav>
+</header>
+<main id="app">
+  <div class="empty-note">読み込み中...</div>
+</main>
+
+<script src="common.js"></script>
+<script>
+let chart = null;
+let selected = new Set();
+let players = [], history = [];
+
+// 折れ線グラフとして意味のある指標だけ（player.htmlと同じ考え方）
+const CHART_METRICS = [
+  { id: "followers", requires: "followers" },
+  { id: "youtube_subscribers", requires: "youtube_subscribers" },
+  { id: "stream_duration_cumulative", requires: "stream_duration" },
+];
+
+function seriesFor(metric, playerName) {
+  if (metric === "stream_duration_cumulative") return buildCumulativeSeries(history, playerName, "stream_duration");
+  const rows = history.filter(r => r.player_name === playerName && r.metric === metric).slice().sort((a, b) => a.date < b.date ? -1 : 1);
+  return { labels: rows.map(r => r.date), data: rows.map(r => parseFloat(r.value)) };
+}
+
+function drawCompareChart() {
+  const metric = document.getElementById("metricSelect").value;
+  const names = [...selected];
+
+  // 選手ごとにX軸(labels)が違う可能性があるので、全員分のlabelsを合成してから各系列をそこに合わせる
+  const allLabelsSet = new Set();
+  const seriesByName = {};
+  names.forEach(name => {
+    const s = seriesFor(metric, name);
+    seriesByName[name] = s;
+    s.labels.forEach(l => allLabelsSet.add(l));
+  });
+  const labels = [...allLabelsSet].sort();
+
+  const datasets = names.map((name, i) => {
+    const s = seriesByName[name];
+    const byLabel = {};
+    s.labels.forEach((l, idx) => byLabel[l] = s.data[idx]);
+    return {
+      label: name,
+      data: labels.map(l => byLabel[l] ?? null),
+      borderColor: SERIES_COLORS[i % SERIES_COLORS.length],
+      backgroundColor: SERIES_COLORS[i % SERIES_COLORS.length],
+      spanGaps: true,
+      tension: 0.25,
+      pointRadius: 2,
+    };
+  });
+
+  if (chart) chart.destroy();
+  const wrap = document.getElementById("chartWrap");
+  if (!names.length) {
+    wrap.innerHTML = `<div class="empty-note">比較したい選手をチームボタンか下のチップから選んでください</div>`;
+    return;
+  }
+  if (typeof Chart === "undefined") {
+    wrap.innerHTML = `<div class="empty-note">グラフライブラリの読み込みに失敗しました</div>`;
+    return;
+  }
+  wrap.innerHTML = `<canvas id="chart"></canvas>`;
+  chart = new Chart(document.getElementById("chart"), {
+    type: "line",
+    data: { labels, datasets },
+    options: {
+      responsive: true,
+      plugins: { legend: { position: "bottom", labels: { boxWidth: 10 } } },
+      scales: {
+        x: { ticks: { color: "#6b7280" }, grid: { color: "#f0f1f3" } },
+        y: { ticks: { color: "#6b7280" }, grid: { color: "#f0f1f3" }, reverse: isLowerBetter(metric) },
+      },
+    },
+  });
+}
+
+function renderChips() {
+  const wrap = document.getElementById("playerChips");
+  wrap.innerHTML = players.map(p => `
+    <span class="player-chip ${selected.has(p.player_name) ? "active" : ""}" data-name="${encodeURIComponent(p.player_name)}">
+      ${teamBadgeHTML(p.team_tag)}${p.player_name}
+    </span>`).join("");
+  wrap.querySelectorAll(".player-chip").forEach(chip => {
+    chip.addEventListener("click", () => {
+      const name = decodeURIComponent(chip.dataset.name);
+      if (selected.has(name)) selected.delete(name); else selected.add(name);
+      renderChips();
+      renderTeamButtons();
+      drawCompareChart();
+    });
+  });
+}
+
+function renderTeamButtons() {
+  const teams = [...new Set(players.map(p => p.team_tag))];
+  const wrap = document.getElementById("teamButtons");
+  wrap.innerHTML = teams.map(t => {
+    const teamPlayers = players.filter(p => p.team_tag === t);
+    const allSelected = teamPlayers.every(p => selected.has(p.player_name));
+    const color = TEAM_COLORS[t] || "#888";
+    return `<button class="team-select-btn ${allSelected ? "active" : ""}" data-team="${t}"
+      style="${allSelected ? `background:${color};` : ""}">${t}チーム全員</button>`;
+  }).join("");
+  wrap.querySelectorAll(".team-select-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const t = btn.dataset.team;
+      const teamPlayers = players.filter(p => p.team_tag === t);
+      const allSelected = teamPlayers.every(p => selected.has(p.player_name));
+      teamPlayers.forEach(p => allSelected ? selected.delete(p.player_name) : selected.add(p.player_name));
+      renderChips();
+      renderTeamButtons();
+      drawCompareChart();
+    });
+  });
+}
+
+async function boot() {
+  const app = document.getElementById("app");
+  let data;
+  try {
+    data = await loadData();
+  } catch (err) {
+    app.innerHTML = `<div class="error-banner">データ読み込みエラー: ${err.message}</div>`;
+    return;
+  }
+  players = data.players;
+  history = data.history;
+
+  const availableMetrics = new Set(history.map(r => r.metric));
+  const metrics = CHART_METRICS.filter(m => availableMetrics.has(m.requires)).map(m => m.id);
+
+  if (!metrics.length) {
+    app.innerHTML = `<div class="empty-note">まだ比較できるデータがありません</div>`;
+    return;
+  }
+
+  app.innerHTML = `
+    <div class="control-row">
+      <div class="control-group">
+        <label>指標</label>
+        <select id="metricSelect">${metrics.map(m => `<option value="${m}">${metricLabel(m)}</option>`).join("")}</select>
+      </div>
+    </div>
+    <div class="control-group" style="margin-bottom:6px;">
+      <label>チームで一括選択</label>
+      <div class="team-select-row" id="teamButtons"></div>
+    </div>
+    <div class="control-group" style="margin-bottom:16px;">
+      <label>選手を個別に選択（クリックで追加/解除）</label>
+      <div class="player-chip-list" id="playerChips"></div>
+    </div>
+    <div class="chart-box" id="chartWrap"></div>
+  `;
+
+  document.getElementById("metricSelect").addEventListener("change", drawCompareChart);
+  renderTeamButtons();
+  renderChips();
+  drawCompareChart();
+}
+
+boot();
+</script>
+</body>
+</html>

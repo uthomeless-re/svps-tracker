@@ -14,6 +14,7 @@
     <a class="nav-btn" href="index.html">選手一覧</a>
     <a class="nav-btn" href="ranking.html">ランキング</a>
     <a class="nav-btn" href="matches.html">試合結果</a>
+    <a class="nav-btn" href="compare.html">比較</a>
   </nav>
 </header>
 <main id="app">
@@ -25,9 +26,15 @@
 let chart = null;
 
 function drawChart(history, name, metric, color) {
-  const rows = history.filter(r => r.player_name === name && r.metric === metric).slice().sort((a, b) => a.date < b.date ? -1 : 1);
-  const labels = rows.map(r => r.date);
-  const data = rows.map(r => parseFloat(r.value));
+  let labels, data;
+  if (metric === "stream_duration_cumulative") {
+    // 隔週の生値をそのまま繋いでも意味がないので、時系列に積み上げた累積値を表示する
+    ({ labels, data } = buildCumulativeSeries(history, name, "stream_duration"));
+  } else {
+    const rows = history.filter(r => r.player_name === name && r.metric === metric).slice().sort((a, b) => a.date < b.date ? -1 : 1);
+    labels = rows.map(r => r.date);
+    data = rows.map(r => parseFloat(r.value));
+  }
 
   if (chart) chart.destroy();
   if (typeof Chart === "undefined") {
@@ -75,12 +82,19 @@ async function boot() {
     return;
   }
 
-  // 折れ線グラフとして意味のある指標だけに絞る（Xフォロワー数・YouTube登録者数・配信時間）。
+  // 折れ線グラフとして意味のある指標だけに絞る（Xフォロワー数・YouTube登録者数・累積配信時間）。
+  // 配信時間は隔週ごとの生値をそのまま折れ線にしても「バラバラな値を繋いだだけ」で意味を
+  // 持たないため、時系列に積み上げた「累積配信時間」として表示する（stream_duration_cumulative、
+  // 実データはstream_durationを使うがdrawChart()側で累積計算する）。
   // ランクマッチ最高順位やPS戦績のような「推移として見せる価値が薄い/別タブで扱う」指標は含めない。
-  const CHART_METRICS = ["followers", "youtube_subscribers", "stream_duration"];
+  const CHART_METRICS = [
+    { id: "followers", requires: "followers" },
+    { id: "youtube_subscribers", requires: "youtube_subscribers" },
+    { id: "stream_duration_cumulative", requires: "stream_duration" },
+  ];
   const rows = history.filter(r => r.player_name === name);
   const availableMetrics = new Set(rows.map(r => r.metric));
-  const metrics = CHART_METRICS.filter(m => availableMetrics.has(m));
+  const metrics = CHART_METRICS.filter(m => availableMetrics.has(m.requires)).map(m => m.id);
 
   const followers = latestValue(history, name, "followers");
   const yt = latestValue(history, name, "youtube_subscribers");
@@ -119,6 +133,7 @@ async function boot() {
           <label>指標</label>
           <select id="metricSelect">${metrics.map(m => `<option value="${m}">${metricLabel(m)}</option>`).join("")}</select>
         </div>
+        <a href="compare.html" style="font-size:13px;">他の選手と比較する →</a>
       </div>
       <div class="chart-box"><canvas id="chart"></canvas></div>
     ` : `<div class="empty-note">この選手のデータはまだありません</div>`}
