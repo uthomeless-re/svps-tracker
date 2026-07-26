@@ -143,17 +143,27 @@ async function loadData() {
   };
 }
 
+// "regular_season"（レギュラーシーズン通算）や"current"（現在値）は、月ごと/隔週ごとの
+// periodとは別枠の「集計済みの合算値」であり、実際の月別periodと期間が重複している
+// （例: regular_seasonの値は4月後半〜7月後半の合計を既に含んでいる）。これらを他の月別
+// periodと同列に並べて積み上げてしまうと二重計上になり、グラフが意味不明な形になる。
+// 累積グラフは実際の月別/隔週periodだけを対象にする。
+const CUMULATIVE_EXCLUDED_PERIODS = new Set(["regular_season", "current", "cumulative_to_date"]);
+
 // 隔週などの期間ごとの値（例: stream_duration）は、そのまま折れ線にしても
 // 「期間ごとにバラバラな値を単に線でつないだだけ」になり推移として意味を持たない。
 // 期間を時系列順に並べて積み上げた累積値にすることで、初めて「増え続ける推移」として意味を持つ。
 // 同じ期間が複数日にわたって観測される場合は、その期間の最新（最終）観測値を採用する。
 function buildCumulativeSeries(history, playerName, metric) {
-  const rows = history.filter(r => r.player_name === playerName && r.metric === metric);
+  const rows = history.filter(r => r.player_name === playerName && r.metric === metric && !CUMULATIVE_EXCLUDED_PERIODS.has(r.period));
   const byPeriod = {};
   rows.forEach(r => {
     if (!byPeriod[r.period] || byPeriod[r.period].date < r.date) byPeriod[r.period] = r;
   });
-  const periodRows = Object.values(byPeriod).sort((a, b) => a.date < b.date ? -1 : (a.date > b.date ? 1 : 0));
+  // 並び順は観測日(date)ではなく、period自体の時系列キー(periodSortKey)を正とする。
+  // dateは「その期間の値をいつ取得したか」でしかなく、period自体の前後関係とは無関係
+  // （取得が遅れた期間があると日付ベースの並びが崩れるため）。
+  const periodRows = Object.values(byPeriod).sort((a, b) => periodSortKey(a.period) - periodSortKey(b.period));
 
   let cumulative = 0;
   const labels = [];

@@ -157,12 +157,6 @@ let matches = [];
 let svlabo = [];
 let tableSort = { key: "followers", dir: "desc" };
 
-function xHandleFromUrl(url) {
-  if (!url) return null;
-  const m = String(url).match(/(?:twitter|x)\.com\/([^/?#]+)/i);
-  return m ? "@" + m[1] : "リンク";
-}
-
 function hexToRgba(hex, alpha) {
   const h = (hex || "#888888").replace("#", "");
   const r = parseInt(h.substring(0, 2), 16), g = parseInt(h.substring(2, 4), 16), b = parseInt(h.substring(4, 6), 16);
@@ -220,9 +214,6 @@ const TABLE_COLUMNS = [
   { key: "cr100", label: "BEYOND回数", defaultDir: "desc",
     sortValue: r => r.cr100,
     render: r => fmtNum(r.cr100) },
-  { key: "x", label: "X", defaultDir: "asc",
-    sortValue: r => r.player.x_url ? 0 : 1,
-    render: r => r.player.x_url ? `<a href="${r.player.x_url}" target="_blank" rel="noopener">${xHandleFromUrl(r.player.x_url)}</a>` : "-" },
 ];
 
 function renderTableMode(container) {
@@ -298,9 +289,8 @@ function renderGraphMode(container) {
     <div class="chart-box" id="chartWrap"></div>
   `;
 
-  // 初期表示は「今選ばれている指標を全選手分比較した状態」にする（選ぶ手間を無くす）。
-  // 多すぎて見づらい場合は下の「全解除」ボタンで一旦クリアできる。
-  players.forEach(p => selected.add(p.player_name));
+  // 初期状態は未選択（全選手分を一度に重ねると線が多すぎて見づらいため）。
+  // チームボタンか選手チップから選んでもらう。
 
   // 初期選択の指標は「累積配信時間」にする。フォロワー数・登録者数はまだ観測点が
   // 1つしかない選手が多く、折れ線としては見づらいため（配信時間は隔週ごとに増えていく）。
