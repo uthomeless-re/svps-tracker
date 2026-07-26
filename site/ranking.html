@@ -12,6 +12,7 @@
   <nav>
     <a class="nav-btn" href="index.html">選手一覧</a>
     <a class="nav-btn active" href="ranking.html">ランキング</a>
+    <a class="nav-btn" href="matches.html">試合結果</a>
   </nav>
 </header>
 <main id="app">
@@ -33,12 +34,19 @@ async function boot() {
   const playerByName = {};
   players.forEach(p => playerByName[p.player_name] = p);
 
-  const allMetrics = [...new Set(history.map(r => r.metric))].sort((a, b) => {
-    const pref = ["followers", "youtube_subscribers"];
-    const ia = pref.indexOf(a), ib = pref.indexOf(b);
-    if (ia !== -1 || ib !== -1) return (ia === -1 ? 99 : ia) - (ib === -1 ? 99 : ib);
-    return a.localeCompare(b);
-  });
+  // ランキング対象は「自動パイプラインで継続的に更新される、期間ごとの値」の指標に限定する。
+  // PS戦績（ps_win/ps_point）はラウンド単位のスナップショットなのでここでは扱わず、
+  // 通算成績としてmatches.htmlに出す。ランクマッチ関連（cr_*）は手動運用でデータが
+  // 疎らなため、ここに出すと一部選手しか表示されない紛らわしい結果になるので除外する。
+  const EXCLUDED_PREFIXES = ["ps_win", "ps_point", "cr_"];
+  const allMetrics = [...new Set(history.map(r => r.metric))]
+    .filter(m => !EXCLUDED_PREFIXES.some(p => m.startsWith(p)))
+    .sort((a, b) => {
+      const pref = ["followers", "youtube_subscribers"];
+      const ia = pref.indexOf(a), ib = pref.indexOf(b);
+      if (ia !== -1 || ib !== -1) return (ia === -1 ? 99 : ia) - (ib === -1 ? 99 : ib);
+      return a.localeCompare(b);
+    });
 
   app.innerHTML = `
     <div class="control-row">
@@ -68,40 +76,58 @@ async function boot() {
   function drawTable() {
     const metric = metricSelect.value;
     const period = periodSelect.value;
-    const rows = history.filter(r => r.metric === metric && r.period === period);
     const lowerBetter = isLowerBetter(metric);
-    rows.sort((a, b) => {
-      const va = parseFloat(a.value), vb = parseFloat(b.value);
-      return lowerBetter ? va - vb : vb - va;
+
+    // その指標のデータを持つ選手だけでなく、players.csvの全選手を対象にする。
+    // データが無い選手は"-"表示で末尾に回す（「読み込んだ選手しか出ない」状態にしない）。
+    const valueByPlayer = {};
+    history.filter(r => r.metric === metric && r.period === period).forEach(r => {
+      valueByPlayer[r.player_name] = r.value;
     });
 
-    if (!rows.length) {
-      document.getElementById("rankTableWrap").innerHTML = `<div class="empty-note">この指標・期間のデータはありません</div>`;
-      return;
-    }
+    const withValue = [];
+    const withoutValue = [];
+    players.forEach(p => {
+      const v = valueByPlayer[p.player_name];
+      if (v != null && v !== "") withValue.push({ player: p, value: parseFloat(v) });
+      else withoutValue.push({ player: p, value: null });
+    });
+    withValue.sort((a, b) => lowerBetter ? a.value - b.value : b.value - a.value);
 
     const medal = ["gold", "silver", "bronze"];
-    const body = rows.map((r, i) => {
-      const player = playerByName[r.player_name];
+    const rankedBody = withValue.map((r, i) => {
       const rankClass = medal[i] || "";
       return `
         <tr>
           <td><span class="rank-num ${rankClass}">${i + 1}</span></td>
-          <td>${teamBadgeHTML(r.team_tag)}</td>
+          <td>${teamBadgeHTML(r.player.team_tag)}</td>
           <td>
-            <a class="player-link" href="player.html?name=${encodeURIComponent(r.player_name)}">
-              ${player ? avatarHTML(player, images, 28) : ""}
-              ${r.player_name}
+            <a class="player-link" href="player.html?name=${encodeURIComponent(r.player.player_name)}">
+              ${avatarHTML(r.player, images, 24)}
+              ${r.player.player_name}
             </a>
           </td>
           <td class="rank-value">${fmtNum(r.value)}</td>
         </tr>`;
     }).join("");
 
+    const unrankedBody = withoutValue.map(r => `
+        <tr>
+          <td><span class="rank-num">-</span></td>
+          <td>${teamBadgeHTML(r.player.team_tag)}</td>
+          <td>
+            <a class="player-link" href="player.html?name=${encodeURIComponent(r.player.player_name)}">
+              ${avatarHTML(r.player, images, 24)}
+              ${r.player.player_name}
+            </a>
+          </td>
+          <td class="rank-value" style="color:var(--text-muted);">-</td>
+        </tr>`).join("");
+
     document.getElementById("rankTableWrap").innerHTML = `
       <table class="rank-table">
         <thead><tr><th>#</th><th>チーム</th><th>選手</th><th>${metricLabel(metric)}</th></tr></thead>
-        <tbody>${body}</tbody>
+        <tbody>${rankedBody}${unrankedBody}</tbody>
       </table>`;
   }
 

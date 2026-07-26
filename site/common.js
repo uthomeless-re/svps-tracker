@@ -4,6 +4,26 @@
 const DATA_URL = "data/history.csv";
 const PLAYERS_URL = "data/players.csv";
 const IMAGES_MANIFEST_URL = "data/player_images.json";
+const MATCHES_URL = "data/match_results.csv";
+
+// クラス名 → アイコンファイル名（アップロードされた公式クラスアイコンを使用）
+const CLASS_ICONS = {
+  "エルフ": "class_elf.svg",
+  "ロイヤル": "class_royal.svg",
+  "ウィッチ": "class_witch.svg",
+  "ドラゴン": "class_dragon.svg",
+  "ナイトメア": "class_nightmare.svg",
+  "ビショップ": "class_bishop.svg",
+  "ネメシス": "class_nemesis.svg",
+  "ニュートラル": "class_neutral.svg",
+};
+
+function classIconHTML(className, size) {
+  size = size || 20;
+  const file = CLASS_ICONS[className];
+  if (!file) return `<span style="font-size:12px;color:var(--text-muted);">${className || "-"}</span>`;
+  return `<img src="images/classes/${file}" width="${size}" height="${size}" alt="${className}" title="${className}" style="vertical-align:middle;">`;
+}
 
 const TEAM_COLORS = {
   CR: "#e11d48", ZETA: "#7c3aed", DFM: "#f97316", VRL: "#eab308",
@@ -94,4 +114,24 @@ function avatarHTML(player, images, size) {
 function teamBadgeHTML(teamTag) {
   const color = TEAM_COLORS[teamTag] || "#888";
   return `<span class="team-badge" style="background:${color}">${teamTag}</span>`;
+}
+
+// data/match_results.csv を読み込む（存在しない/まだ試合が無い場合は空配列を返す）。
+async function loadMatches() {
+  try {
+    const resp = await fetch(MATCHES_URL);
+    if (!resp.ok) return [];
+    return parseCSV(await resp.text());
+  } catch (e) {
+    return [];
+  }
+}
+
+// 選手の通算成績（勝数・敗数・勝率・獲得ポイント）を試合結果の配列から集計する。
+function summarizeMatches(matches, playerName) {
+  const rows = matches.filter(m => m.player_name === playerName);
+  const wins = rows.filter(r => r.result === "WIN").length;
+  const losses = rows.filter(r => r.result === "LOSE").length;
+  const points = rows.reduce((sum, r) => sum + (parseFloat(r.point) || 0), 0);
+  return { played: rows.length, wins, losses, points, winRate: rows.length ? wins / rows.length : null };
 }

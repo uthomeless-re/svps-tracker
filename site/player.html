@@ -13,6 +13,7 @@
   <nav>
     <a class="nav-btn" href="index.html">選手一覧</a>
     <a class="nav-btn" href="ranking.html">ランキング</a>
+    <a class="nav-btn" href="matches.html">試合結果</a>
   </nav>
 </header>
 <main id="app">
@@ -74,14 +75,12 @@ async function boot() {
     return;
   }
 
+  // 折れ線グラフとして意味のある指標だけに絞る（Xフォロワー数・YouTube登録者数・配信時間）。
+  // ランクマッチ最高順位やPS戦績のような「推移として見せる価値が薄い/別タブで扱う」指標は含めない。
+  const CHART_METRICS = ["followers", "youtube_subscribers", "stream_duration"];
   const rows = history.filter(r => r.player_name === name);
-  const metrics = [...new Set(rows.map(r => r.metric))];
-  const preferredOrder = ["followers", "youtube_subscribers"];
-  metrics.sort((a, b) => {
-    const ia = preferredOrder.indexOf(a), ib = preferredOrder.indexOf(b);
-    if (ia !== -1 || ib !== -1) return (ia === -1 ? 99 : ia) - (ib === -1 ? 99 : ib);
-    return a.localeCompare(b);
-  });
+  const availableMetrics = new Set(rows.map(r => r.metric));
+  const metrics = CHART_METRICS.filter(m => availableMetrics.has(m));
 
   const followers = latestValue(history, name, "followers");
   const yt = latestValue(history, name, "youtube_subscribers");
@@ -98,8 +97,21 @@ async function boot() {
       </div>
     </div>
     <div class="quick-stats">
-      <div class="quick-stat"><div class="label">Xフォロワー数</div><div class="value">${followers != null ? fmtNum(followers) : "-"}</div></div>
-      <div class="quick-stat"><div class="label">YouTube登録者数</div><div class="value">${yt != null ? fmtNum(yt) : "-"}</div></div>
+      <div class="quick-stat">
+        <div class="label">Xフォロワー数</div>
+        <div class="value">${followers != null ? fmtNum(followers) : "-"}</div>
+        ${player.x_url ? `<a href="${player.x_url}" target="_blank" rel="noopener" style="font-size:12px;">Xで見る →</a>` : ""}
+      </div>
+      <div class="quick-stat">
+        <div class="label">YouTube登録者数</div>
+        <div class="value">${yt != null ? fmtNum(yt) : "-"}</div>
+        ${player.youtube_url ? `<a href="${player.youtube_url}" target="_blank" rel="noopener" style="font-size:12px;">YouTubeで見る →</a>` : ""}
+      </div>
+      <div class="quick-stat">
+        <div class="label">PS公式戦</div>
+        <div class="value" style="font-size:14px;">試合結果を見る</div>
+        <a href="matches.html?name=${encodeURIComponent(name)}" style="font-size:12px;">通算成績・対戦履歴 →</a>
+      </div>
     </div>
     ${metrics.length ? `
       <div class="control-row">

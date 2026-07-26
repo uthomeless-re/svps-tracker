@@ -7,7 +7,9 @@
 このデータはJS実行後に描画される（生HTMLには入っていない）ため、Playwrightでのクリック操作が必須。
 
 出力: data/snapshots/ps_results_{today}.json に生データを保存し、
-      history.csv用の行リスト [{date, round, player_name, class, result, point}, ...] を返す。
+      [{date, round, player_name, class, result, point, opponent_name, opponent_class}, ...] を返す。
+      opponent_name/opponent_classは同じBATTLE Nの対戦相手の名前・使用クラス
+      （試合結果タブで「いつ・誰と・何を使って戦ったか」を表示するために追加）。
 
 --- パース方式について ---
 実際にGitHub Actions上で取得した生テキスト（data/snapshots/ps_results_raw_modals_*.json）を元に、
@@ -82,9 +84,11 @@ def parse_battles(modal_text: str, round_label: str):
                 continue
             result2, name2, class2 = lines[j], lines[j + 1], lines[j + 2]
 
-        for name, cls, result in ((name1, class1, result1), (name2, class2, result2)):
+        pair = ((name1, class1, result1), (name2, class2, result2))
+        for idx, (name, cls, result) in enumerate(pair):
             if name == TEAM_BATTLE_LABEL:
                 continue  # 個人成績ではないので除外（README参照）
+            opp_name, opp_cls, _ = pair[1 - idx]
             battles.append(
                 {
                     "round": round_label,
@@ -92,6 +96,8 @@ def parse_battles(modal_text: str, round_label: str):
                     "class": cls,
                     "result": result,
                     "point": 1 if result == "WIN" else 0,
+                    "opponent_name": opp_name if opp_name != TEAM_BATTLE_LABEL else None,
+                    "opponent_class": opp_cls if opp_name != TEAM_BATTLE_LABEL else None,
                 }
             )
 

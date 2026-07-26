@@ -27,18 +27,25 @@ svps-tracker/
 ├── data/
 │   ├── players.csv             選手マスタ（8チーム37名。youtube_url/twitch_url/ps_slugを保持。
 │   │                            詳細は「players.csvについて」参照）
-│   ├── history.csv              蓄積される日次データ（ロング形式）
+│   ├── history.csv              蓄積される日次データ（ロング形式。followers/youtube_subscribers/
+│   │                             stream_duration/watch_time/video_view_count/video_upload_count/
+│   │                             cr_*系のみ。PS戦績はここには入らない。下記参照）
+│   ├── match_results.csv       PS公式戦の個人試合結果（1試合1行。詳細は「試合結果について」参照）
 │   ├── player_images.json      選手名→写真パスのマッピング（scrape_player_images.pyが自動生成）
 │   ├── svlabo_leaderboards.csv  svlabo.jpの全ユーザー分を一括取得した手動作業の成果物
 │   │                             （period, class, rank, team_tag, player_name, rating の列。history.csvとは別管理・自動更新はされない）
 │   └── snapshots/               日次の生スクレイピング結果（デバッグ用、実行のたびに増える）
 └── site/                        表示用ページ。ページごとにファイルを分けており、今後ページを
     ├── style.css                  増やしたり構成を変えたりしやすい作りにしてある
-    ├── common.js                共通ロジック（データ読み込み・CSVパース・指標ラベル・アバター表示など）
+    ├── common.js                共通ロジック（データ読み込み・CSVパース・指標ラベル・アバター表示・
+    │                             クラスアイコン表示など）
     ├── index.html               選手一覧（トップページ）。写真付きカードから各選手ページへ
-    ├── player.html              選手詳細（写真・現在値・折れ線グラフ、?name=選手名 で表示選手を切替）
-    ├── ranking.html             ランキング（指標×期間で選手を順位付け表示）
-    └── images/players/          ダウンロードした選手写真（scrape_player_images.pyが生成、初回pushには含まれない）
+    ├── player.html              選手詳細（写真・現在値・X/YouTubeへのリンク・折れ線グラフ、
+    │                             ?name=選手名 で表示選手を切替）
+    ├── ranking.html             ランキング（指標×期間で選手を順位付け表示。全選手を常に表示）
+    ├── matches.html             試合結果（通算成績リーダーボード、?name=選手名で個別の対戦履歴）
+    ├── images/players/          ダウンロードした選手写真（scrape_player_images.pyが生成、初回pushには含まれない）
+    └── images/classes/          シャドバのクラスアイコン（ユーザー提供のSVG、8種）
 ```
 
 ## セットアップ手順
@@ -124,7 +131,9 @@ svlabo.jp（ランクマッチ最高順位）は当初、毎日自動取得→�
 - **ps.shadowverse-wb.com（PS戦績）**: 「試合結果詳細」モーダルは実際にGitHub Actions上で
   取得した生テキストを元に、「BATTLE Nトークンの前後を選手名/クラス/勝敗/獲得ポイントとして
   読み取る」ロジックに書き換え済みです（`parse_battles()`）。「チームバトル」という
-  個人に紐づかない対戦枠は成績から除外しています。
+  個人に紐づかない対戦枠は成績から除外しています。対戦相手の名前・使用クラスも
+  同じトークン列から取得し、`match_results.csv`に記録しています（詳細は
+  「試合結果について」参照）。
 - **YouTube登録者数（scrape_youtube.py）**: メインはYouTube Data API（`channels.list`）による
   取得で、`YOUTUBE_API_KEY`が設定されていれば端数まで正確な登録者数が取れます。APIキーの
   取得方法は上記「YouTube Data APIキーの取得方法」を参照してください。
@@ -158,6 +167,40 @@ svlabo.jp（ランクマッチ最高順位）は当初、毎日自動取得→�
   デバッグしています。今後もエラーが出た場合は、Actionsの実行結果ページ右上の「...」から
   「Download log archive」でログ一式をダウンロードし、このチャットに添付してもらえれば
   同じ方法で調査できます。
+
+## 試合結果について（match_results.csv / matches.html）
+
+PS公式戦の個人成績（勝敗・獲得ポイント・使用クラス・対戦相手）は、以前は history.csv に
+`ps_win`/`ps_point`として1ラウンドごとの値を記録していましたが、以下の理由で
+`data/match_results.csv`という別ファイル・別画面（`matches.html`）に分離しました。
+
+- ラウンド単位の勝敗（0/1）や獲得ポイント（0/1）は、そもそも折れ線グラフにする意味がない
+- 「その時点の期間だけのランキング」を出しても、通算の強さを表さず紛らわしい
+  （実際に「ある1ラウンドの獲得ポイントだけでランキングされる」という問題が起きていた）
+- 見せたいのは「通算成績」と「いつ・誰と・何のクラスで戦ったか」という試合単位の情報
+
+`match_results.csv`のスキーマ:
+
+| 列 | 内容 |
+|---|---|
+| round | 試合の日時ラベル（例: `2026.07.22(WED) 17:30~`） |
+| date | この試合を最後に観測した日（スクレイピング日。参考情報） |
+| team_tag / player_name | 選手側のチーム・選手名 |
+| class | 選手が使用したクラス |
+| result | `WIN` / `LOSE` |
+| point | 獲得ポイント（勝ちなら1、負けなら0） |
+| opponent_team_tag / opponent_name / opponent_class | 対戦相手のチーム・選手名・使用クラス |
+
+重複排除のキーは `(round, player_name)` にしています（`date`は含めません）。理由は、
+同じ消化済み試合が毎日のスクレイピングで繰り返し観測されるため、`date`をキーに含めると
+同じ試合が実行のたびに「別の試合」として重複記録されてしまうためです。`round`はその試合の
+実施日時そのものを表すラベルなので、これと選手名の組み合わせで一意になります。
+
+`matches.html`はデフォルトで通算成績（全選手の累計勝敗・勝率・獲得ポイント）を
+ランキング表示し、選手名をクリックすると`?name=選手名`でその選手の試合履歴
+（日時・使用クラス・対戦相手・相手クラス・勝敗）を一覧表示します。クラス表示には
+ユーザーから提供されたシャドウバースの公式クラスアイコン（`site/images/classes/`、8種のSVG）
+を使っています。
 
 ## 選手写真について（scrape_player_images.py）
 
@@ -199,9 +242,14 @@ YouTubeを持たずTwitchのみ）。
 | date | 取得日（JST） |
 | team_tag | チーム略称（CR/ZETA/DFM/VRL/MRG/RC/RDL/LVH） |
 | player_name | 選手名（players.csv基準） |
-| metric | 指標名（followers, youtube_subscribers, stream_duration, ps_win など。svlabo.jpを手動で取り込んだ場合は cr_rank_エルフ 等も入る） |
-| period | 期間キー（current, jul_early_2026, cumulative_to_date, 節ラベルなど） |
+| metric | 指標名（followers, youtube_subscribers, stream_duration, watch_time, video_view_count, video_upload_count など。svlabo.jpを手動で取り込んだ場合は cr_rank_エルフ 等も入る。PS戦績はhistory.csvには入らず match_results.csv 側） |
+| period | 期間キー（current, jul_early_2026, cumulative_to_date, 隔週ラベルなど） |
 | value | 数値 |
+
+選手詳細ページ（`player.html`）の折れ線グラフは、上記のうち「推移として見る価値が薄い/
+変動が少ない」ものを除いた followers・youtube_subscribers・stream_duration の3つだけを
+デフォルトで表示しています。watch_time（視聴時間）・video_view_count（累積再生回数）も
+継続的に伸びる指標として表示候補になり得るので、必要であれば追加できます。
 
 ## 次にやると良さそうなこと
 

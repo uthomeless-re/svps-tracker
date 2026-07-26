@@ -13,12 +13,16 @@ metric一覧:
     cr_rating_{class}     : クラス別ランクマッチ最高レート（同上）
     cr_best_rank_overall  : 全クラス通算の最高順位（svlabo.jp, periodは"cumulative_to_date"）
     cr_top100_count       : 順位100位以内に入った回数（同上）
-    ps_win                : PS公式戦での勝敗（1=勝ち/0=負け、periodは節・ラウンドのラベル）
-    ps_point              : PS公式戦で獲得したポイント（同上）
     youtube_subscribers    : YouTubeチャンネル登録者数（各選手のYouTubeチャンネル, periodは"current"）
 
 同じ(date, team_tag, player_name, metric, period)の組み合わせが既に存在する場合は上書きする
 （1日に複数回スクリプトを実行しても重複行にならないようにするため）。
+
+PS公式戦の個人成績（勝敗・獲得ポイント・使用クラス・対戦相手）は history.csv には含めず、
+別途 data/match_results.csv に書き出す（rows_from_ps_results / merge_matches 参照）。
+「ラウンドごとの1試合の勝敗」は history.csv のような日次推移データとして扱う意味がなく
+（折れ線グラフにもランキングにも向かない）、通算成績・試合単位の一覧として見せる方が
+実態に合っているため、スキーマを分けている。
 """
 import csv
 import glob
@@ -29,6 +33,12 @@ import sys
 from common import DATA_DIR, SNAPSHOT_DIR, HISTORY_CSV, today_str, load_players, build_name_index, normalize_name
 
 FIELDNAMES = ["date", "team_tag", "player_name", "metric", "period", "value"]
+
+MATCH_RESULTS_CSV = os.path.join(DATA_DIR, "match_results.csv")
+MATCH_FIELDNAMES = [
+    "round", "date", "team_tag", "player_name", "class", "result", "point",
+    "opponent_team_tag", "opponent_name", "opponent_class",
+]
 
 
 def latest_snapshot(source: str, date_str: str):
@@ -127,31 +137,38 @@ def rows_from_youtube(snapshot):
     return rows
 
 
-def rows_from_ps_results(snapshot, name_index):
+def match_rows_from_ps_results(snapshot, name_index):
+    """ps_resultsのスナップショットから、試合結果タブ用の1試合1行データを組み立てる。
+    対戦相手のteam_tagもplayers.csvから引いて付与する（相手が players.csv に無い
+    ケースはteam_tagを"?"にする）。"""
     rows = []
     for r in snapshot or []:
         norm = normalize_name(r["player_name"])
         player = name_index.get(norm)
         team_tag = player["team_tag"] if player else "?"
         name = player["player_name"] if player else r["player_name"]
+
+        opp_raw = r.get("opponent_name")
+        opp_team_tag = ""
+        opp_name = ""
+        if opp_raw:
+            opp_norm = normalize_name(opp_raw)
+            opp_player = name_index.get(opp_norm)
+            opp_team_tag = opp_player["team_tag"] if opp_player else "?"
+            opp_name = opp_player["player_name"] if opp_player else opp_raw
+
         rows.append(
             {
+                "round": r["round"],
                 "date": r["date"],
                 "team_tag": team_tag,
                 "player_name": name,
-                "metric": "ps_win",
-                "period": r["round"],
-                "value": 1 if r["result"] == "WIN" else 0,
-            }
-        )
-        rows.append(
-            {
-                "date": r["date"],
-                "team_tag": team_tag,
-                "player_name": name,
-                "metric": "ps_point",
-                "period": r["round"],
-                "value": r["point"],
+                "class": r["class"],
+                "result": r["result"],
+                "point": r["point"],
+                "opponent_team_tag": opp_team_tag,
+                "opponent_name": opp_name,
+                "opponent_class": r.get("opponent_class") or "",
             }
         )
     return rows
@@ -173,6 +190,24 @@ def merge(existing_rows, new_rows):
     return sorted(merged.values(), key=lambda r: (r["date"], r["team_tag"], r["player_name"], r["metric"], r["period"]))
 
 
+def load_existing_matches():
+    if not os.path.exists(MATCH_RESULTS_CSV):
+        return []
+    with open(MATCH_RESULTS_CSV, encoding="utf-8", newline="") as f:
+        return list(csv.DictReader(f))
+
+
+def merge_matches(existing_rows, new_rows):
+    """試合結果は (round, player_name) をキーにして重複排除する（scrape日を含めない）。
+    同じ試合を毎日再取得しても「新しい試合として増殖」しないようにするための重要な設計。
+    dateは「最後に観測した日」として上書き更新する。"""
+    key = lambda r: (r["round"], r["player_name"])
+    merged = {key(r): r for r in existing_rows}
+    for r in new_rows:
+        merged[key(r)] = {k: str(r[k]) for k in MATCH_FIELDNAMES}
+    return sorted(merged.values(), key=lambda r: (r["round"], r["team_tag"], r["player_name"]))
+
+
 def main():
     date_str = today_str()
     players = load_players()
@@ -186,7 +221,6 @@ def main():
     new_rows = []
     new_rows += rows_from_reference(reference_snap, name_index)
     new_rows += rows_from_svlabo(svlabo_snap)
-    new_rows += rows_from_ps_results(ps_snap, name_index)
     new_rows += rows_from_youtube(youtube_snap)
 
     print(f"[update_history] {len(new_rows)} new rows from today's snapshots")
@@ -203,6 +237,19 @@ def main():
         writer.writerows(merged)
 
     print(f"[update_history] history.csv now has {len(merged)} rows")
+
+    # 試合結果は別ファイルに分けて統合する（history.csvには入れない。理由はdocstring参照）
+    new_matches = match_rows_from_ps_results(ps_snap, name_index)
+    existing_matches = load_existing_matches()
+    merged_matches = merge_matches(existing_matches, new_matches)
+
+    with open(MATCH_RESULTS_CSV, "w", encoding="utf-8", newline="") as f:
+        writer = csv.DictWriter(f, fieldnames=MATCH_FIELDNAMES)
+        writer.writeheader()
+        writer.writerows(merged_matches)
+
+    print(f"[update_history] match_results.csv now has {len(merged_matches)} rows "
+          f"({len(new_matches)} seen in today's snapshot)")
 
 
 if __name__ == "__main__":
