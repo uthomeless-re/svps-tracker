@@ -1,0 +1,101 @@
+:root {
+  --bg: #ffffff;
+  --text: #1b1f27;
+  --text-muted: #6b7280;
+  --border: #e5e7eb;
+  --accent: #2f6fed;
+  --accent-soft: #eaf1ff;
+}
+* { box-sizing: border-box; }
+body {
+  font-family: system-ui, "Hiragino Kaku Gothic ProN", "Noto Sans JP", sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  margin: 0;
+}
+header {
+  position: sticky; top: 0; z-index: 10;
+  background: #fff;
+  border-bottom: 1px solid var(--border);
+  padding: 14px 24px;
+  display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;
+}
+header h1 { font-size: 16px; margin: 0; font-weight: 600; }
+header h1 a { color: inherit; text-decoration: none; }
+nav { display: flex; gap: 6px; }
+nav a.nav-btn {
+  border: 1px solid var(--border);
+  background: #fff;
+  color: var(--text-muted);
+  padding: 7px 16px;
+  border-radius: 999px;
+  font-size: 13px;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-block;
+}
+nav a.nav-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+main { max-width: 980px; margin: 0 auto; padding: 24px; }
+.error-banner {
+  background: #fff4f4; border: 1px solid #f3b4b4; color: #a33; padding: 12px 14px;
+  border-radius: 10px; font-size: 13px; margin-bottom: 16px;
+}
+.team-badge {
+  display: inline-block; font-size: 11px; font-weight: 600; color: #fff;
+  padding: 2px 8px; border-radius: 999px; letter-spacing: .02em;
+}
+
+/* 選手写真・アバター（写真が無い/読み込み失敗時はイニシャル入りの色付き円で代替） */
+.avatar {
+  border-radius: 50%; object-fit: cover; display: block; background: #f1f2f4;
+}
+.avatar-fallback {
+  border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  color: #fff; font-weight: 700; user-select: none;
+}
+
+.players-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 12px;
+}
+.player-card {
+  border: 1px solid var(--border); border-radius: 14px; padding: 14px 16px; cursor: pointer;
+  transition: box-shadow .15s ease, transform .15s ease, border-color .15s ease;
+  background: #fff; text-decoration: none; color: inherit; display: block;
+}
+.player-card:hover { box-shadow: 0 6px 18px rgba(0,0,0,.08); transform: translateY(-2px); border-color: #d8dee9; }
+.player-card .photo-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+.player-card .name { font-size: 15px; font-weight: 600; margin: 0 0 2px; }
+.player-card .team-name { font-size: 12px; color: var(--text-muted); }
+.player-card .stats { font-size: 12px; color: var(--text-muted); display: flex; flex-direction: column; gap: 2px; margin-top: 8px; border-top: 1px solid var(--border); padding-top: 8px; }
+.player-card .stats b { color: var(--text); font-weight: 600; }
+
+.back-link { font-size: 13px; color: var(--accent); cursor: pointer; display: inline-block; margin-bottom: 14px; text-decoration: none; }
+.detail-header { display: flex; align-items: center; gap: 16px; margin-bottom: 4px; flex-wrap: wrap; }
+.detail-header .info h2 { font-size: 22px; margin: 0 0 4px; }
+.quick-stats { display: flex; gap: 10px; flex-wrap: wrap; margin: 16px 0; }
+.quick-stat { border: 1px solid var(--border); border-radius: 12px; padding: 10px 16px; min-width: 140px; }
+.quick-stat .label { font-size: 11px; color: var(--text-muted); }
+.quick-stat .value { font-size: 20px; font-weight: 700; margin-top: 2px; }
+
+.control-row { display: flex; gap: 14px; flex-wrap: wrap; align-items: flex-end; margin-bottom: 14px; }
+.control-group { display: flex; flex-direction: column; gap: 5px; }
+.control-group label { font-size: 12px; color: var(--text-muted); }
+select {
+  background: #fff; color: var(--text); border: 1px solid var(--border); border-radius: 8px;
+  padding: 7px 10px; font-size: 13px; min-width: 200px;
+}
+.chart-box { border: 1px solid var(--border); border-radius: 14px; padding: 18px; }
+canvas { max-height: 420px; }
+.empty-note { color: var(--text-muted); font-size: 13px; padding: 20px 0; }
+
+table.rank-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+table.rank-table th { text-align: left; font-size: 12px; color: var(--text-muted); font-weight: 500; padding: 8px 10px; border-bottom: 1px solid var(--border); }
+table.rank-table td { padding: 8px 10px; border-bottom: 1px solid #f0f1f3; vertical-align: middle; }
+table.rank-table tr:hover td { background: #fafbfc; }
+.rank-num { font-weight: 700; color: var(--text-muted); width: 28px; display: inline-block; }
+.rank-num.gold { color: #b8860b; }
+.rank-num.silver { color: #8a8a8a; }
+.rank-num.bronze { color: #a05a2c; }
+.player-link { cursor: pointer; font-weight: 600; color: inherit; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; }
+.player-link:hover { color: var(--accent); }
+.rank-value { font-weight: 700; }

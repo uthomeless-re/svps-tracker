@@ -28,7 +28,9 @@ def today_str():
 
 def load_players():
     """data/players.csv を読み込み、
-    [{team_tag, team_name, player_name, x_handle, x_url, youtube_url, twitch_url}, ...] を返す。"""
+    [{team_tag, team_name, player_name, x_handle, x_url, youtube_url, twitch_url, ps_slug}, ...] を返す。
+    ps_slug は ps.shadowverse-wb.com/26-27/teams/{ps_slug} の選手個人ページURLに使うスラッグ
+    （scrape_player_images.py が選手写真を取得する際に使用）。"""
     with open(PLAYERS_CSV, encoding="utf-8-sig", newline="") as f:
         return list(csv.DictReader(f))
 

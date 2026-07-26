@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ランキング | Shadowverse Premier Series 26-27 選手データトラッカー</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+  <h1><a href="index.html">Shadowverse Premier Series 26-27 選手データトラッカー</a></h1>
+  <nav>
+    <a class="nav-btn" href="index.html">選手一覧</a>
+    <a class="nav-btn active" href="ranking.html">ランキング</a>
+  </nav>
+</header>
+<main id="app">
+  <div class="empty-note">読み込み中...</div>
+</main>
+
+<script src="common.js"></script>
+<script>
+async function boot() {
+  const app = document.getElementById("app");
+  let data;
+  try {
+    data = await loadData();
+  } catch (err) {
+    app.innerHTML = `<div class="error-banner">データ読み込みエラー: ${err.message}</div>`;
+    return;
+  }
+  const { players, history, images } = data;
+  const playerByName = {};
+  players.forEach(p => playerByName[p.player_name] = p);
+
+  const allMetrics = [...new Set(history.map(r => r.metric))].sort((a, b) => {
+    const pref = ["followers", "youtube_subscribers"];
+    const ia = pref.indexOf(a), ib = pref.indexOf(b);
+    if (ia !== -1 || ib !== -1) return (ia === -1 ? 99 : ia) - (ib === -1 ? 99 : ib);
+    return a.localeCompare(b);
+  });
+
+  app.innerHTML = `
+    <div class="control-row">
+      <div class="control-group">
+        <label>指標</label>
+        <select id="rankMetricSelect">${allMetrics.map(m => `<option value="${m}">${metricLabel(m)}</option>`).join("")}</select>
+      </div>
+      <div class="control-group">
+        <label>期間</label>
+        <select id="rankPeriodSelect"></select>
+      </div>
+    </div>
+    <div id="rankTableWrap"></div>
+  `;
+
+  const metricSelect = document.getElementById("rankMetricSelect");
+  const periodSelect = document.getElementById("rankPeriodSelect");
+
+  function refreshPeriods() {
+    const metric = metricSelect.value;
+    const periods = [...new Set(history.filter(r => r.metric === metric).map(r => r.period))];
+    periods.sort();
+    periodSelect.innerHTML = periods.map(p => `<option value="${p}">${p}</option>`).join("");
+    if (periods.length) periodSelect.value = periods[periods.length - 1];
+  }
+
+  function drawTable() {
+    const metric = metricSelect.value;
+    const period = periodSelect.value;
+    const rows = history.filter(r => r.metric === metric && r.period === period);
+    const lowerBetter = isLowerBetter(metric);
+    rows.sort((a, b) => {
+      const va = parseFloat(a.value), vb = parseFloat(b.value);
+      return lowerBetter ? va - vb : vb - va;
+    });
+
+    if (!rows.length) {
+      document.getElementById("rankTableWrap").innerHTML = `<div class="empty-note">この指標・期間のデータはありません</div>`;
+      return;
+    }
+
+    const medal = ["gold", "silver", "bronze"];
+    const body = rows.map((r, i) => {
+      const player = playerByName[r.player_name];
+      const rankClass = medal[i] || "";
+      return `
+        <tr>
+          <td><span class="rank-num ${rankClass}">${i + 1}</span></td>
+          <td>${teamBadgeHTML(r.team_tag)}</td>
+          <td>
+            <a class="player-link" href="player.html?name=${encodeURIComponent(r.player_name)}">
+              ${player ? avatarHTML(player, images, 28) : ""}
+              ${r.player_name}
+            </a>
+          </td>
+          <td class="rank-value">${fmtNum(r.value)}</td>
+        </tr>`;
+    }).join("");
+
+    document.getElementById("rankTableWrap").innerHTML = `
+      <table class="rank-table">
+        <thead><tr><th>#</th><th>チーム</th><th>選手</th><th>${metricLabel(metric)}</th></tr></thead>
+        <tbody>${body}</tbody>
+      </table>`;
+  }
+
+  metricSelect.addEventListener("change", () => { refreshPeriods(); drawTable(); });
+  periodSelect.addEventListener("change", drawTable);
+
+  refreshPeriods();
+  drawTable();
+}
+
+boot();
+</script>
+</body>
+</html>
