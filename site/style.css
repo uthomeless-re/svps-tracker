@@ -161,3 +161,10 @@ table.rank-table tr:hover td { background: #fafbfc; }
   cursor: pointer; user-select: none; background: #fff; color: var(--text); display: inline-flex; align-items: center; gap: 5px;
 }
 .player-chip.active { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); font-weight: 600; }
+
+/* compare.html: 表で比較（一覧比較表）のソート可能な見出し */
+table.rank-table th.sortable { cursor: pointer; user-select: none; white-space: nowrap; }
+table.rank-table th.sortable:hover { color: var(--text); }
+table.rank-table th.sortable .sort-arrow { display: inline-block; width: 10px; opacity: .45; font-size: 10px; margin-left: 2px; }
+table.rank-table th.sortable.active .sort-arrow { opacity: 1; color: var(--accent); }
+tr.team-row-stripe { border-left: 3px solid transparent; }

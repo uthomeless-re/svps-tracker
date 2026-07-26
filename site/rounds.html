@@ -3,17 +3,16 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>節別詳細結果 | Shadowverse Premier Series 26-27 選手データトラッカー</title>
+<title>対戦成績 | Shadowverse Premier Series 26-27 選手データ</title>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
 <header>
-  <h1><a href="index.html">Shadowverse Premier Series 26-27 選手データトラッカー</a></h1>
+  <h1><a href="index.html">Shadowverse Premier Series 26-27 選手データ</a></h1>
   <nav>
     <a class="nav-btn" href="index.html">選手一覧</a>
     <a class="nav-btn" href="ranking.html">ランキング</a>
-    <a class="nav-btn" href="matches.html">試合結果</a>
-    <a class="nav-btn active" href="rounds.html">節別詳細</a>
+    <a class="nav-btn active" href="rounds.html">対戦成績</a>
     <a class="nav-btn" href="compare.html">比較</a>
   </nav>
 </header>
@@ -23,41 +22,158 @@
 
 <script src="common.js"></script>
 <script>
-// svlabo.jpの「N節 試合詳細結果＆配信時間指定URL」記事(例: https://svlabo.jp/blog-entry-1793.html)を
-// 手動で取り込んだ data/battle_details.csv を表示する。取り込み方法・スキーマはREADME「節別詳細結果について」参照。
+// このページは「PS公式戦の対戦成績」まわりを1つにまとめたページ。以前は「試合結果」
+// （通算成績リーダーボード・個人の対戦履歴）と「節別詳細」（svlabo.jp由来の節ごとの詳細・
+// 配信リンク）で別々のナビ項目に分かれていたが、名前も内容も紛らわしかったため統合した。
+// - ?name=選手名 が付いていれば、その選手の個人成績（対戦履歴・配信リンク）を表示
+// - それ以外は「通算成績」(全選手リーダーボード) か「節別に見る」(節ごとの詳細) を
+//   ページ内のボタンで切り替えられる
 async function boot() {
   const app = document.getElementById("app");
-  let battles;
+  const params = new URLSearchParams(location.search);
+  const name = params.get("name");
+
+  let data, matches, battleDetails;
   try {
-    battles = await loadBattleDetails();
+    [data, matches, battleDetails] = await Promise.all([loadData(), loadMatches(), loadBattleDetails()]);
   } catch (err) {
     app.innerHTML = `<div class="error-banner">データ読み込みエラー: ${err.message}</div>`;
     return;
   }
+  const { players, images } = data;
 
-  if (!battles.length) {
-    app.innerHTML = `<div class="empty-note">まだ節別詳細結果のデータがありません</div>`;
+  if (name) {
+    renderPlayerMatches(app, players, images, matches, battleDetails, name);
     return;
   }
 
-  const sections = [...new Set(battles.map(b => b.section))].sort((a, b) => a - b);
+  if (!matches.length && !battleDetails.length) {
+    app.innerHTML = `<div class="empty-note">まだ対戦データがありません（PS公式戦の消化済み試合が対象です）</div>`;
+    return;
+  }
+
+  const initialMode = params.get("view") === "sections" ? "sections" : "leaderboard";
+  renderModeSwitcher(app, players, images, matches, battleDetails, initialMode);
+}
+
+function renderModeSwitcher(app, players, images, matches, battleDetails, mode) {
+  app.innerHTML = `
+    <div class="team-select-row" style="margin-bottom:14px;">
+      <button class="team-select-btn ${mode === "leaderboard" ? "active" : ""}" id="modeLeaderboardBtn"
+        style="${mode === "leaderboard" ? "background:var(--accent);" : ""}">通算成績</button>
+      <button class="team-select-btn ${mode === "sections" ? "active" : ""}" id="modeSectionsBtn"
+        style="${mode === "sections" ? "background:var(--accent);" : ""}">節別に見る</button>
+    </div>
+    <div id="modeContent"></div>
+  `;
+  document.getElementById("modeLeaderboardBtn").addEventListener("click", () => renderModeSwitcher(app, players, images, matches, battleDetails, "leaderboard"));
+  document.getElementById("modeSectionsBtn").addEventListener("click", () => renderModeSwitcher(app, players, images, matches, battleDetails, "sections"));
+
+  const content = document.getElementById("modeContent");
+  if (mode === "sections") {
+    renderSectionsView(content, battleDetails);
+  } else {
+    renderLeaderboard(content, players, images, matches);
+  }
+}
+
+function renderLeaderboard(container, players, images, matches) {
+  if (!matches.length) {
+    container.innerHTML = `<div class="empty-note">まだPS公式戦の試合結果がありません</div>`;
+    return;
+  }
+  const all = players.map(p => ({ player: p, stats: summarizeMatches(matches, p.player_name) }));
+  const played = all.filter(r => r.stats.played > 0)
+    .sort((a, b) => b.stats.points - a.stats.points || b.stats.winRate - a.stats.winRate);
+  const unplayed = all.filter(r => r.stats.played === 0);
+  const rows = played.concat(unplayed);
+
+  const medal = ["gold", "silver", "bronze"];
+  const body = rows.map((r, i) => {
+    const { player, stats } = r;
+    const isPlayed = stats.played > 0;
+    const rankClass = isPlayed ? (medal[i] || "") : "";
+    return `
+      <tr>
+        <td><span class="rank-num ${rankClass}">${isPlayed ? i + 1 : "-"}</span></td>
+        <td>${teamLogoHTML(player.team_tag, 22)}</td>
+        <td>
+          <a class="player-link" href="rounds.html?name=${encodeURIComponent(player.player_name)}">
+            ${avatarHTML(player, images, 28)}
+            ${player.player_name}
+          </a>
+        </td>
+        <td>${stats.wins}勝${stats.losses}敗</td>
+        <td>${isPlayed ? (stats.winRate * 100).toFixed(0) + "%" : "-"}</td>
+        <td class="rank-value">${isPlayed ? fmtNum(stats.points) : "-"}</td>
+      </tr>`;
+  }).join("");
+
+  container.innerHTML = `
+    <div class="empty-note" style="padding-top:0;">PS公式戦の通算成績（全試合の累計）。選手名をクリックすると個別の対戦履歴を見られます。</div>
+    <table class="rank-table">
+      <thead><tr><th>#</th><th>チーム</th><th>選手</th><th>戦績</th><th>勝率</th><th>獲得ポイント</th></tr></thead>
+      <tbody>${body}</tbody>
+    </table>
+  `;
+}
+
+function renderPlayerMatches(app, players, images, matches, battleDetails, name) {
+  const player = players.find(p => p.player_name === name);
+  if (!player) {
+    app.innerHTML = `<a class="back-link" href="rounds.html">← 通算成績に戻る</a><div class="empty-note">選手が見つかりません</div>`;
+    return;
+  }
+
+  const rows = matches.filter(m => m.player_name === name).slice().sort((a, b) => a.round < b.round ? -1 : 1);
+  const stats = summarizeMatches(matches, name);
+
+  // match_results.csv(公式サイト由来)とbattle_details.csv(svlabo.jp由来)は採番方式が別なので
+  // チーム対戦カード+選手名で突き合わせる（findBattleDetail()参照）。見つかれば「使用したが
+  // 登録していなかった他のクラス」も併せて表示し、配信の該当タイムスタンプへのリンクを出す。
+  // 見つからない場合（まだsvlabo.jpの記事が出ていない節など）は、これまで通り使用クラスの
+  // アイコン単体・配信リンク無しで表示する。
+  const body = rows.map(r => {
+    const detail = findBattleDetail(battleDetails, r.team_tag, r.player_name, r.opponent_team_tag);
+    const classCell = detail ? classPoolHTML(detail.pool, detail.used, 18) : `<span class="vs-cell">${classIconHTML(r.class)}</span>`;
+    return `
+    <tr>
+      <td>${r.round}</td>
+      <td>${classCell}</td>
+      <td>
+        <span class="vs-cell">
+          ${teamLogoHTML(r.opponent_team_tag, 18)}
+          <a href="player.html?name=${encodeURIComponent(r.opponent_name)}">${r.opponent_name || "-"}</a>
+          ${classIconHTML(r.opponent_class)}
+        </span>
+      </td>
+      <td><span class="result-badge ${r.result === 'WIN' ? 'win' : 'lose'}">${r.result === 'WIN' ? '勝ち' : '負け'}</span></td>
+      <td>${detail && detail.video_url ? `<a href="${detail.video_url}" target="_blank" rel="noopener" style="font-size:12px;">配信</a>` : "-"}</td>
+    </tr>`;
+  }).join("");
 
   app.innerHTML = `
-    <div class="empty-note" style="padding-top:0;">svlabo.jpが公開している節ごとの試合詳細結果。使用したクラスは通常表示、
-    登録していたが使わなかったクラスは薄く表示しています。「配信を見る」は該当バトル開始時点にジャンプします。</div>
-    <div class="control-row">
-      <div class="control-group">
-        <label>節</label>
-        <select id="sectionSelect">${sections.map(s => `<option value="${s}">${s}節</option>`).join("")}</select>
+    <a class="back-link" href="rounds.html">← 通算成績に戻る</a>
+    <div class="detail-header">
+      ${avatarHTML(player, images, 56)}
+      <div class="info">
+        <h2 style="font-size:20px;">${player.player_name}</h2>
+        ${teamLogoHTML(player.team_tag, 24)}
       </div>
     </div>
-    <div id="roundsWrap"></div>
+    <div class="quick-stats">
+      <div class="quick-stat"><div class="label">戦績</div><div class="value">${stats.wins}勝${stats.losses}敗</div></div>
+      <div class="quick-stat"><div class="label">勝率</div><div class="value">${stats.played ? (stats.winRate * 100).toFixed(0) + "%" : "-"}</div></div>
+      <div class="quick-stat"><div class="label">獲得ポイント</div><div class="value">${fmtNum(stats.points)}</div></div>
+    </div>
+    <table class="rank-table">
+      <thead><tr><th>日時</th><th>使用クラス</th><th>対戦相手</th><th>結果</th><th>配信</th></tr></thead>
+      <tbody>${body}</tbody>
+    </table>
   `;
-
-  const sel = document.getElementById("sectionSelect");
-  sel.addEventListener("change", () => renderSection(battles, sel.value));
-  renderSection(battles, sel.value);
 }
+
+// --- 節別に見る（svlabo.jpの節別記事から取り込んだ、ROUND/BATTLEごとの使用/未使用クラス・配信URL） ---
 
 function battleRowHTML(b) {
   const t1win = b.winlose === "WIN";
@@ -83,8 +199,30 @@ function battleRowHTML(b) {
     </tr>`;
 }
 
-function renderSection(battles, section) {
-  const rows = battles.filter(b => b.section === section);
+function renderSectionsView(container, battleDetails) {
+  if (!battleDetails.length) {
+    container.innerHTML = `<div class="empty-note">まだ節別詳細のデータがありません</div>`;
+    return;
+  }
+  const sections = [...new Set(battleDetails.map(b => b.section))].sort((a, b) => a - b);
+  container.innerHTML = `
+    <div class="empty-note" style="padding-top:0;">svlabo.jpが公開している節ごとの試合詳細結果。使用したクラスは通常表示、
+    登録していたが使わなかったクラスは薄く表示しています。「配信を見る」は該当バトル開始時点にジャンプします。</div>
+    <div class="control-row">
+      <div class="control-group">
+        <label>節</label>
+        <select id="sectionSelect">${sections.map(s => `<option value="${s}">${s}節</option>`).join("")}</select>
+      </div>
+    </div>
+    <div id="roundsWrap"></div>
+  `;
+  const sel = container.querySelector("#sectionSelect");
+  sel.addEventListener("change", () => renderSection(container, battleDetails, sel.value));
+  renderSection(container, battleDetails, sel.value);
+}
+
+function renderSection(container, battleDetails, section) {
+  const rows = battleDetails.filter(b => b.section === section);
 
   // half+round_noでグルーピングしつつ、元の並び順（前半戦R1→前半戦R2→後半戦R1→後半戦R2）を保つ
   const groups = {};
@@ -117,7 +255,7 @@ function renderSection(battles, section) {
       </div>`;
   }).join("");
 
-  document.getElementById("roundsWrap").innerHTML = html;
+  container.querySelector("#roundsWrap").innerHTML = html;
 }
 
 boot();

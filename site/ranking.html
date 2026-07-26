@@ -3,17 +3,16 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ランキング | Shadowverse Premier Series 26-27 選手データトラッカー</title>
+<title>ランキング | Shadowverse Premier Series 26-27 選手データ</title>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
 <header>
-  <h1><a href="index.html">Shadowverse Premier Series 26-27 選手データトラッカー</a></h1>
+  <h1><a href="index.html">Shadowverse Premier Series 26-27 選手データ</a></h1>
   <nav>
     <a class="nav-btn" href="index.html">選手一覧</a>
     <a class="nav-btn active" href="ranking.html">ランキング</a>
-    <a class="nav-btn" href="matches.html">試合結果</a>
-    <a class="nav-btn" href="rounds.html">節別詳細</a>
+    <a class="nav-btn" href="rounds.html">対戦成績</a>
     <a class="nav-btn" href="compare.html">比較</a>
   </nav>
 </header>
@@ -36,17 +35,18 @@
 //      「順位が指定しきい値(10/30/50/100)以内だった回数」でランキングする。期間ではなく
 //      しきい値を選ぶ専用のセレクトボックスに差し替える。
 const CURRENT_METRICS = ["followers", "youtube_subscribers"];
-const EXCLUDED_PREFIXES = ["ps_win", "ps_point", "cr_"]; // PS戦績はmatches.html、cr_*(生データ)はcr_topN_countに統合
+const EXCLUDED_PREFIXES = ["ps_win", "ps_point", "cr_"]; // PS戦績はps_wins/ps_pointsとして別途統合、cr_*(生データ)はcr_topN_countに統合
 
 function isCurrentMetric(m) { return CURRENT_METRICS.includes(m); }
 function isCumulativeMetric(m) { return m === "stream_duration_cumulative"; }
 function isCrMetric(m) { return m === "cr_topN_count"; }
+function isPsMetric(m) { return m === "ps_wins" || m === "ps_points"; }
 
 async function boot() {
   const app = document.getElementById("app");
-  let data, svlabo;
+  let data, svlabo, matches;
   try {
-    [data, svlabo] = await Promise.all([loadData(), loadSvlaboLeaderboard()]);
+    [data, svlabo, matches] = await Promise.all([loadData(), loadSvlaboLeaderboard(), loadMatches()]);
   } catch (err) {
     app.innerHTML = `<div class="error-banner">データ読み込みエラー: ${err.message}</div>`;
     return;
@@ -58,6 +58,7 @@ async function boot() {
     .sort((a, b) => a.localeCompare(b));
   const hasStreamDuration = periodicMetrics.includes("stream_duration");
   const hasCrData = svlabo.length > 0;
+  const hasPsData = matches.length > 0;
 
   const currentOptions = CURRENT_METRICS.filter(m => history.some(r => r.metric === m))
     .map(m => `<option value="${m}">${metricLabel(m)}</option>`).join("");
@@ -65,6 +66,10 @@ async function boot() {
   const cumulativeOptions = hasStreamDuration
     ? `<option value="stream_duration_cumulative">${metricLabel("stream_duration_cumulative")}</option>` : "";
   const crOptions = hasCrData ? `<option value="cr_topN_count">CR順位 TOP N入り回数</option>` : "";
+  // 対戦成績ページ(rounds.html)の通算成績を、ランキングでも見られるようにする
+  // （「今の試合結果をランキングに入れちゃってもいい」という要望に対応）。
+  const psOptions = hasPsData
+    ? `<option value="ps_wins">PS公式戦 勝利数</option><option value="ps_points">PS公式戦 獲得ポイント</option>` : "";
 
   app.innerHTML = `
     <div class="control-row">
@@ -74,6 +79,7 @@ async function boot() {
           ${currentOptions ? `<optgroup label="現在値">${currentOptions}</optgroup>` : ""}
           ${periodicOptions ? `<optgroup label="期間ごとの指標">${periodicOptions}</optgroup>` : ""}
           ${cumulativeOptions ? `<optgroup label="通算">${cumulativeOptions}</optgroup>` : ""}
+          ${psOptions ? `<optgroup label="PS公式戦">${psOptions}</optgroup>` : ""}
           ${crOptions ? `<optgroup label="ランクマッチ(CR)">${crOptions}</optgroup>` : ""}
         </select>
       </div>

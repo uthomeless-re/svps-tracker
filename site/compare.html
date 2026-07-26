@@ -3,18 +3,17 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>選手比較 | Shadowverse Premier Series 26-27 選手データトラッカー</title>
+<title>選手比較 | Shadowverse Premier Series 26-27 選手データ</title>
 <link rel="stylesheet" href="style.css">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 </head>
 <body>
 <header>
-  <h1><a href="index.html">Shadowverse Premier Series 26-27 選手データトラッカー</a></h1>
+  <h1><a href="index.html">Shadowverse Premier Series 26-27 選手データ</a></h1>
   <nav>
     <a class="nav-btn" href="index.html">選手一覧</a>
     <a class="nav-btn" href="ranking.html">ランキング</a>
-    <a class="nav-btn" href="matches.html">試合結果</a>
-    <a class="nav-btn" href="rounds.html">節別詳細</a>
+    <a class="nav-btn" href="rounds.html">対戦成績</a>
     <a class="nav-btn active" href="compare.html">比較</a>
   </nav>
 </header>
@@ -139,27 +138,130 @@ function renderTeamButtons() {
   });
 }
 
-async function boot() {
-  const app = document.getElementById("app");
-  let data;
-  try {
-    data = await loadData();
-  } catch (err) {
-    app.innerHTML = `<div class="error-banner">データ読み込みエラー: ${err.message}</div>`;
-    return;
-  }
-  players = data.players;
-  history = data.history;
+// --- 表で比較（一覧比較表） ---
+// 「一覧比較できるページ」の要望に対応。折れ線グラフ（1指標×選手を選んで重ねる）とは別に、
+// 全選手を1つのスプレッドシート的な表にまとめ、列見出しクリックでソートできるようにする。
+// 月間ポスト数（Xの投稿数）は以前の会話でスクレイピングが現実的に難しいと説明済みのため含めていない。
+// 「最終ビヨンド数（最高順位）」はランクマッチ最高順位（cr_best_rank_overall、まだ全選手分は
+// 揃っていない可能性がある）として解釈している。配信時間・動画投稿数は、このサイトの他の
+// ページと同じ考え方（隔週の生値ではなく積み上げた累積値の方が意味がある）に合わせて累積値で出す。
+let matches = [];
+let tableSort = { key: "followers", dir: "desc" };
 
+function xHandleFromUrl(url) {
+  if (!url) return null;
+  const m = String(url).match(/(?:twitter|x)\.com\/([^/?#]+)/i);
+  return m ? "@" + m[1] : "リンク";
+}
+
+function hexToRgba(hex, alpha) {
+  const h = (hex || "#888888").replace("#", "");
+  const r = parseInt(h.substring(0, 2), 16), g = parseInt(h.substring(2, 4), 16), b = parseInt(h.substring(4, 6), 16);
+  return `rgba(${r},${g},${b},${alpha})`;
+}
+
+function buildTableRows(players, history, images, matches) {
+  return players.map(player => {
+    const streamSeries = buildCumulativeSeries(history, player.player_name, "stream_duration");
+    const videoSeries = buildCumulativeSeries(history, player.player_name, "video_upload_count");
+    const followersRaw = latestValue(history, player.player_name, "followers");
+    const ytRaw = latestValue(history, player.player_name, "youtube_subscribers");
+    const crRankRaw = latestValue(history, player.player_name, "cr_best_rank_overall");
+    return {
+      player, images,
+      followers: followersRaw != null ? parseFloat(followersRaw) : null,
+      yt: ytRaw != null ? parseFloat(ytRaw) : null,
+      stats: summarizeMatches(matches, player.player_name),
+      streamTotal: streamSeries.data.length ? streamSeries.data[streamSeries.data.length - 1] : null,
+      videoTotal: videoSeries.data.length ? videoSeries.data[videoSeries.data.length - 1] : null,
+      crRank: crRankRaw != null ? parseFloat(crRankRaw) : null,
+    };
+  });
+}
+
+const TABLE_COLUMNS = [
+  { key: "team", label: "チーム", defaultDir: "asc",
+    sortValue: r => r.player.team_tag || "",
+    render: r => `${teamLogoHTML(r.player.team_tag, 20)} <span style="margin-left:4px;">${r.player.team_tag}</span>` },
+  { key: "name", label: "名前", defaultDir: "asc",
+    sortValue: r => r.player.player_name || "",
+    render: r => `<a class="player-link" href="player.html?name=${encodeURIComponent(r.player.player_name)}">${avatarHTML(r.player, r.images, 22)}${r.player.player_name}</a>` },
+  { key: "followers", label: "Xフォロワー数", defaultDir: "desc",
+    sortValue: r => r.followers ?? -1,
+    render: r => r.followers != null ? fmtNum(r.followers) : "-" },
+  { key: "yt", label: "YT登録者数", defaultDir: "desc",
+    sortValue: r => r.yt ?? -1,
+    render: r => r.yt != null ? fmtNum(r.yt) : "-" },
+  { key: "ps", label: "PS戦績", defaultDir: "desc",
+    sortValue: r => r.stats.points,
+    render: r => r.stats.played ? `${r.stats.wins}勝${r.stats.losses}敗` : "-" },
+  { key: "stream", label: "累積配信時間", defaultDir: "desc",
+    sortValue: r => r.streamTotal ?? -1,
+    render: r => r.streamTotal != null ? fmtNum(r.streamTotal) + "h" : "-" },
+  { key: "videos", label: "累積動画投稿数", defaultDir: "desc",
+    sortValue: r => r.videoTotal ?? -1,
+    render: r => r.videoTotal != null ? fmtNum(r.videoTotal) : "-" },
+  { key: "crrank", label: "ランクマッチ最高順位", defaultDir: "asc",
+    sortValue: r => r.crRank ?? Infinity,
+    render: r => r.crRank != null ? fmtNum(r.crRank) + "位" : "-" },
+  { key: "x", label: "Xアカウント", defaultDir: "asc",
+    sortValue: r => r.player.x_url ? 0 : 1,
+    render: r => r.player.x_url ? `<a href="${r.player.x_url}" target="_blank" rel="noopener">${xHandleFromUrl(r.player.x_url)}</a>` : "-" },
+];
+
+function renderTableMode(container) {
+  const rows = buildTableRows(players, history, images, matches);
+
+  function draw() {
+    const col = TABLE_COLUMNS.find(c => c.key === tableSort.key);
+    const sorted = rows.slice().sort((a, b) => {
+      const av = col.sortValue(a), bv = col.sortValue(b);
+      let cmp;
+      if (typeof av === "string") cmp = av.localeCompare(bv, "ja");
+      else cmp = av - bv;
+      return tableSort.dir === "asc" ? cmp : -cmp;
+    });
+
+    const thead = TABLE_COLUMNS.map(c => {
+      const active = c.key === tableSort.key;
+      const arrow = active ? (tableSort.dir === "asc" ? "▲" : "▼") : "⇅";
+      return `<th class="sortable ${active ? "active" : ""}" data-key="${c.key}">${c.label}<span class="sort-arrow">${arrow}</span></th>`;
+    }).join("");
+
+    const body = sorted.map(r => `
+      <tr class="team-row-stripe" style="border-left-color:${TEAM_COLORS[r.player.team_tag] || "#888"}; background:${hexToRgba(TEAM_COLORS[r.player.team_tag] || "#888888", 0.05)};">
+        ${TABLE_COLUMNS.map(c => `<td>${c.render(r)}</td>`).join("")}
+      </tr>`).join("");
+
+    container.innerHTML = `
+      <div class="empty-note" style="padding-top:0;">見出しをクリックすると、その項目で並び替えられます。行の色はチームカラーです。</div>
+      <table class="rank-table"><thead><tr>${thead}</tr></thead><tbody>${body}</tbody></table>
+    `;
+    container.querySelectorAll("th.sortable").forEach(th => {
+      th.addEventListener("click", () => {
+        const key = th.dataset.key;
+        const c = TABLE_COLUMNS.find(x => x.key === key);
+        if (tableSort.key === key) tableSort.dir = tableSort.dir === "asc" ? "desc" : "asc";
+        else tableSort = { key, dir: c.defaultDir };
+        draw();
+      });
+    });
+  }
+  draw();
+}
+
+// --- グラフで比較（既存の折れ線グラフ機能） ---
+
+function renderGraphMode(container) {
   const availableMetrics = new Set(history.map(r => r.metric));
   const metrics = CHART_METRICS.filter(m => availableMetrics.has(m.requires)).map(m => m.id);
 
   if (!metrics.length) {
-    app.innerHTML = `<div class="empty-note">まだ比較できるデータがありません</div>`;
+    container.innerHTML = `<div class="empty-note">まだ比較できるデータがありません</div>`;
     return;
   }
 
-  app.innerHTML = `
+  container.innerHTML = `
     <div class="control-row">
       <div class="control-group">
         <label>指標</label>
@@ -197,6 +299,42 @@ async function boot() {
   renderTeamButtons();
   renderChips();
   drawCompareChart();
+}
+
+let images = {};
+
+function renderModeSwitcher(app, mode) {
+  app.innerHTML = `
+    <div class="team-select-row" style="margin-bottom:14px;">
+      <button class="team-select-btn ${mode === "graph" ? "active" : ""}" id="modeGraphBtn"
+        style="${mode === "graph" ? "background:var(--accent);" : ""}">グラフで比較</button>
+      <button class="team-select-btn ${mode === "table" ? "active" : ""}" id="modeTableBtn"
+        style="${mode === "table" ? "background:var(--accent);" : ""}">表で比較</button>
+    </div>
+    <div id="modeContent"></div>
+  `;
+  document.getElementById("modeGraphBtn").addEventListener("click", () => renderModeSwitcher(app, "graph"));
+  document.getElementById("modeTableBtn").addEventListener("click", () => renderModeSwitcher(app, "table"));
+
+  const content = document.getElementById("modeContent");
+  if (mode === "table") renderTableMode(content);
+  else renderGraphMode(content);
+}
+
+async function boot() {
+  const app = document.getElementById("app");
+  let data;
+  try {
+    [data, matches] = await Promise.all([loadData(), loadMatches()]);
+  } catch (err) {
+    app.innerHTML = `<div class="error-banner">データ読み込みエラー: ${err.message}</div>`;
+    return;
+  }
+  players = data.players;
+  history = data.history;
+  images = data.images;
+
+  renderModeSwitcher(app, "graph");
 }
 
 boot();

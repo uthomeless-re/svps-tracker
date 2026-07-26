@@ -3,18 +3,17 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>選手詳細 | Shadowverse Premier Series 26-27 選手データトラッカー</title>
+<title>選手詳細 | Shadowverse Premier Series 26-27 選手データ</title>
 <link rel="stylesheet" href="style.css">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 </head>
 <body>
 <header>
-  <h1><a href="index.html">Shadowverse Premier Series 26-27 選手データトラッカー</a></h1>
+  <h1><a href="index.html">Shadowverse Premier Series 26-27 選手データ</a></h1>
   <nav>
     <a class="nav-btn" href="index.html">選手一覧</a>
     <a class="nav-btn" href="ranking.html">ランキング</a>
-    <a class="nav-btn" href="matches.html">試合結果</a>
-    <a class="nav-btn" href="rounds.html">節別詳細</a>
+    <a class="nav-btn" href="rounds.html">対戦成績</a>
     <a class="nav-btn" href="compare.html">比較</a>
   </nav>
 </header>
@@ -132,7 +131,7 @@ async function boot() {
       <div class="quick-stat">
         <div class="label">PS公式戦</div>
         <div class="value" style="font-size:14px;">試合結果を見る</div>
-        <a href="matches.html?name=${encodeURIComponent(name)}" style="font-size:12px;">対戦履歴</a>
+        <a href="rounds.html?name=${encodeURIComponent(name)}" style="font-size:12px;">対戦履歴</a>
       </div>
     </div>
     ${metrics.length ? `
