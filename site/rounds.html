@@ -162,17 +162,30 @@ function renderPlayerMatches(app, players, images, matches, battleDetails, name)
   const rows = matches.filter(m => m.player_name === name).slice().sort((a, b) => a.round < b.round ? -1 : 1);
   const stats = summarizeMatches(matches, name);
 
+  // 全試合は必ずどこかの節に属している（match_results.csvのround列＝試合日時は全行に必ず
+  // 入っている）ので、節番号が「-」になることは無い。まずはbattle_details.csv（svlabo.jp由来）
+  // の実際のsection値を突き合わせて使い、まだsvlabo.jpの記事が出ていない節はround（試合日時）の
+  // 登場順から節番号を組み立てる（同じ日付＝同じ節。全選手・全試合を通じた日付の早い順で採番する
+  // ので、battle_details.csvの番号ともズレない）。
+  const sectionDatesInOrder = [...new Set(matches.map(m => (String(m.round).match(/^\d{4}\.\d{2}\.\d{2}/) || [m.round])[0]))].sort();
+  function sectionNumberFor(round) {
+    const d = (String(round).match(/^\d{4}\.\d{2}\.\d{2}/) || [round])[0];
+    const idx = sectionDatesInOrder.indexOf(d);
+    return idx >= 0 ? idx + 1 : null;
+  }
+
   // match_results.csv(公式サイト由来)とbattle_details.csv(svlabo.jp由来)は採番方式が別なので
   // チーム対戦カード+選手名で突き合わせる（findBattleDetail()参照）。見つかれば「使用したが
   // 登録していなかった他のクラス」も併せて表示し、配信の該当タイムスタンプへのリンクを出す。
   // 見つからない場合（まだsvlabo.jpの記事が出ていない節など）は、これまで通り使用クラスの
-  // アイコン単体・配信リンク無しで表示する。
+  // アイコン単体・配信リンク無しで表示する（節番号自体はround日時から必ず出せる）。
   const body = rows.map(r => {
     const detail = findBattleDetail(battleDetails, r.team_tag, r.player_name, r.opponent_team_tag);
     const classCell = detail ? classPoolHTML(detail.pool, detail.used, 18) : `<span class="vs-cell">${classIconHTML(r.class)}</span>`;
+    const section = (detail && detail.section) || sectionNumberFor(r.round);
     return `
     <tr>
-      <td>${detail && detail.section ? "第" + detail.section + "節" : "-"}</td>
+      <td>第${section}節</td>
       <td>${classCell}</td>
       <td>
         <span class="vs-cell">

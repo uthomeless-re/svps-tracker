@@ -74,10 +74,12 @@ function applySearch(rows, query) {
   return rows.filter(r => normalizeName(r.player_name).includes(q));
 }
 
-// 上位を薄く色分けするための行クラス（1〜3位・4〜10位をそれぞれ軽くハイライトする）。
+// 上位を薄く色分けするための行クラス（1位・2位・3位はそれぞれ金銀銅で、4〜10位はまとめて軽くハイライトする）。
 function rankRowClass(rank) {
   if (rank == null) return "";
-  if (rank <= 3) return "rank-row-top3";
+  if (rank === 1) return "rank-row-1";
+  if (rank === 2) return "rank-row-2";
+  if (rank === 3) return "rank-row-3";
   if (rank <= 10) return "rank-row-top10";
   return "";
 }
