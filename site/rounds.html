@@ -128,7 +128,7 @@ function renderLeaderboard(container, players, images, matches) {
 
     const thead = LEADERBOARD_COLUMNS.map(c => {
       const active = c.key === leaderboardSort.key;
-      const arrow = active ? (leaderboardSort.dir === "asc" ? "▲" : "▼") : "⇅";
+      const arrow = active ? (leaderboardSort.dir === "asc" ? "▲" : "▼") : "";
       return `<th class="sortable ${active ? "active" : ""}" data-key="${c.key}">${c.label}<span class="sort-arrow">${arrow}</span></th>`;
     }).join("");
 
@@ -227,7 +227,7 @@ function battleRowHTML(b) {
       <td>
         <span class="result-badge ${t1win ? "win" : "lose"}">${b.team1} ${t1win ? "勝ち" : "負け"}</span>
       </td>
-      <td>${b.video_url ? `<a href="${b.video_url}" target="_blank" rel="noopener" style="font-size:12px;">配信を見る ↗</a>` : "-"}</td>
+      <td>${b.video_url ? `<a href="${b.video_url}" target="_blank" rel="noopener" style="font-size:12px;">配信</a>` : "-"}</td>
     </tr>`;
 }
 

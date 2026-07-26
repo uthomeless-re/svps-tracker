@@ -42,9 +42,10 @@ function isCumulativeMetric(m) { return m === "stream_duration_cumulative"; }
 function isCrMetric(m) { return m === "cr_topN_count"; }
 
 // フォロワー数/登録者数の行の右端に、その選手のX/YouTubeへのリンクを出すための対応表。
-// ラベルはX/YTで文字数を揃え、指標を切り替えてもリンク列の見た目（幅）が変わらないようにしている。
+// player.htmlのリンク表記（X/YouTube、フルスペル）に合わせている。列の幅はCSS側で
+// 固定しているので、ラベルの長さが変わっても指標切り替え時のガタつきは出ない。
 const CURRENT_METRIC_LINK_FIELD = { followers: "x_url", youtube_subscribers: "youtube_url" };
-const CURRENT_METRIC_LINK_LABEL = { followers: "X", youtube_subscribers: "YT" };
+const CURRENT_METRIC_LINK_LABEL = { followers: "X", youtube_subscribers: "YouTube" };
 
 async function boot() {
   const app = document.getElementById("app");

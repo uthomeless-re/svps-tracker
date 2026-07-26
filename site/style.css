@@ -169,11 +169,23 @@ table.rank-table th.sortable .sort-arrow { display: inline-block; width: 10px; o
 table.rank-table th.sortable.active .sort-arrow { opacity: 1; color: var(--accent); }
 tr.team-row-stripe { border-left: 3px solid transparent; }
 
-/* ranking.html: フォロワー数/登録者数の行末に出すX/YTリンク。指標を切り替えても
-   幅がガタつかないよう固定幅・中央揃えのバッジ風にしている。 */
-td.ext-link-cell { width: 44px; text-align: center; }
+/* ranking.html: フォロワー数/登録者数の行末に出すX/YouTubeリンク。指標を切り替えても
+   幅がガタつかないよう固定幅・中央揃えのバッジ風にしている（ラベルは"X"/"YouTube"）。 */
+td.ext-link-cell { width: 70px; text-align: center; }
 a.ext-link {
-  display: inline-block; min-width: 28px; padding: 3px 6px; border-radius: 6px;
+  display: inline-block; min-width: 52px; padding: 3px 6px; border-radius: 6px;
   font-size: 11px; font-weight: 600; text-align: center; text-decoration: none;
   background: var(--accent-soft); color: var(--accent);
 }
+
+/* ranking.html: 表の列幅を指標に関わらず固定する。table-layout:autoのままだと、
+   指標ごとに見出し文言の長さ（例:「CR順位 TOP N入り回数」は長く「配信時間 (h)」は短い）や
+   値の桁数が違うせいで列幅・表全体の幅が指標を切り替えるたびに変わってガタついていた。
+   table-layout:fixedにして各列の幅をCSSで固定することで、指標を切り替えても表の見た目
+   （列幅・全体の横幅）が変わらないようにしている。 */
+#rankTableWrap table { table-layout: fixed; }
+#rankTableWrap th:nth-child(1), #rankTableWrap td:nth-child(1) { width: 40px; }
+#rankTableWrap th:nth-child(2), #rankTableWrap td:nth-child(2) { width: 60px; }
+#rankTableWrap th:nth-child(3), #rankTableWrap td:nth-child(3) { width: auto; }
+#rankTableWrap th:nth-child(4), #rankTableWrap td:nth-child(4) { width: 200px; overflow-wrap: break-word; }
+#rankTableWrap th:nth-child(5), #rankTableWrap td:nth-child(5) { width: 70px; }

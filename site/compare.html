@@ -146,10 +146,12 @@ function renderTeamButtons() {
 // --- 表で比較（一覧比較表） ---
 // 「一覧比較できるページ」の要望に対応。折れ線グラフ（1指標×選手を選んで重ねる）とは別に、
 // 全選手を1つのスプレッドシート的な表にまとめ、列見出しクリックでソートできるようにする。
-// 月間ポスト数（Xの投稿数）は以前の会話でスクレイピングが現実的に難しいと説明済みのため含めていない。
-// 「最終ビヨンド数（最高順位）」はランクマッチ最高順位（cr_best_rank_overall、まだ全選手分は
-// 揃っていない可能性がある）として解釈している。配信時間・動画投稿数は、このサイトの他の
-// ページと同じ考え方（隔週の生値ではなく積み上げた累積値の方が意味がある）に合わせて累積値で出す。
+// 月間ポスト数（Xの投稿数）はスクレイピングが現実的に難しいため含めていない。
+// 最高順位（crRank）はdata/svlabo_leaderboards.csv（全ユーザー分）から選手ごとの最良順位を
+// 算出したもの（crBestRankForPlayer()参照）。BEYOND回数(100位以内)は同データから
+// 「順位が100位以内だった回数」を数えたもの（crTopNCounts()参照）。配信時間・動画本数は、
+// このサイトの他のページと同じ考え方（隔週の生値ではなく積み上げた累積値の方が意味がある）
+// に合わせて累積値で出す。
 let matches = [];
 let svlabo = [];
 let tableSort = { key: "followers", dir: "desc" };
@@ -208,7 +210,7 @@ const TABLE_COLUMNS = [
   { key: "stream", label: "配信時間", defaultDir: "desc",
     sortValue: r => r.streamTotal ?? -1,
     render: r => r.streamTotal != null ? fmtNum(r.streamTotal) + "h" : "-" },
-  { key: "videos", label: "動画投稿数", defaultDir: "desc",
+  { key: "videos", label: "動画本数", defaultDir: "desc",
     sortValue: r => r.videoTotal ?? -1,
     render: r => r.videoTotal != null ? fmtNum(r.videoTotal) : "-" },
   { key: "crrank", label: "最高順位", defaultDir: "asc",
@@ -237,7 +239,7 @@ function renderTableMode(container) {
 
     const thead = TABLE_COLUMNS.map(c => {
       const active = c.key === tableSort.key;
-      const arrow = active ? (tableSort.dir === "asc" ? "▲" : "▼") : "⇅";
+      const arrow = active ? (tableSort.dir === "asc" ? "▲" : "▼") : "";
       return `<th class="sortable ${active ? "active" : ""}" data-key="${c.key}">${c.label}<span class="sort-arrow">${arrow}</span></th>`;
     }).join("");
 

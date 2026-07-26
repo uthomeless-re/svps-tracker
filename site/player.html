@@ -152,6 +152,9 @@ async function boot() {
 
   if (metrics.length) {
     const sel = document.getElementById("metricSelect");
+    // 初期選択は「累積配信時間」にする（compare.htmlと同じ考え方）。フォロワー数・登録者数は
+    // まだ観測点が1つしかない選手が多く、折れ線として見づらいため。
+    if (metrics.includes("stream_duration_cumulative")) sel.value = "stream_duration_cumulative";
     sel.addEventListener("change", () => drawChart(history, name, sel.value, color));
     drawChart(history, name, sel.value, color);
   }

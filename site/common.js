@@ -78,9 +78,6 @@ const TEAM_COLORS = {
   MRG: "#10b981", RC: "#be123c", RDL: "#6366f1", LVH: "#0891b2",
 };
 
-// compare.htmlで複数選手を重ねて表示する時の系列カラーパレット（順番に割り当てる）
-const SERIES_COLORS = ["#2f6fed", "#e11d48", "#10b981", "#f59e0b", "#7c3aed", "#0891b2", "#be123c", "#eab308", "#6366f1", "#059669"];
-
 const METRIC_LABELS = {
   followers: "Xフォロワー数",
   youtube_subscribers: "YouTube登録者数",
@@ -89,8 +86,6 @@ const METRIC_LABELS = {
   watch_time: "配信視聴時間 (h)",
   video_view_count: "動画再生回数",
   video_upload_count: "動画本数",
-  ps_win: "PS公式戦 勝敗",
-  ps_point: "PS公式戦 獲得ポイント",
   cr_best_rank_overall: "ランクマッチ最高順位（全クラス）",
   cr_top100_count: "ランクマッチ TOP100入り回数",
 };
@@ -368,6 +363,21 @@ async function loadResultJson() {
   }
 }
 
+// 順位付けされた配列に対して「同着」を考慮した順位を各要素の.rank に付与する。
+// 例: 2位が2チーム同着なら両方rank=2、その次のチームはrank=4になる（一般的な競技の順位付け方）。
+// list はソート済み（比較に使うキーが同じ値の要素は必ず連続している）前提。
+function assignCompetitionRanks(list, keyFn) {
+  let rank = 0, prevKey = null;
+  list.forEach((item, i) => {
+    const key = keyFn(item);
+    if (prevKey === null || key !== prevKey) {
+      rank = i + 1; // これまでに数えた要素数+1 = 同着を挟んだ正しい順位
+      prevKey = key;
+    }
+    item.rank = rank;
+  });
+}
+
 // 8チームを「現在の順位」で並べる。
 // 優先順位:
 //   1. data/result.json に実データがあればそれを使う（手動更新される公式の勝敗・得失差・獲得ポイント）
@@ -396,6 +406,9 @@ function computeTeamStandings(players, matches, resultJson) {
     });
     const list = Object.values(teams);
     list.sort((a, b) => b.points - a.points || b.diff - a.diff || b.wins - a.wins);
+    // 同ポイント・同得失差・同勝数のチームは同着として同じ順位にする（公式の見せ方に合わせる。
+    // 例: 2位が2チームなら両方2位、次のチームは3位ではなく4位になる）。
+    assignCompetitionRanks(list, t => `${t.points}|${t.diff}|${t.wins}`);
     return { list, source: "result.json" };
   }
 
@@ -439,6 +452,7 @@ function computeTeamStandings(players, matches, resultJson) {
   const hasMatches = matches.length > 0;
   if (hasMatches) {
     list.sort((a, b) => b.points - a.points || b.diff - a.diff || b.wins - a.wins);
+    assignCompetitionRanks(list, t => `${t.points}|${t.diff}|${t.wins}`);
   }
   return { list, source: hasMatches ? "match_results.csv" : "none" };
 }

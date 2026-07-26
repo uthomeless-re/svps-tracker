@@ -72,7 +72,7 @@ async function boot() {
     const diff = team.diff || 0;
     const diffText = diff > 0 ? `+${diff}` : `${diff}`;
     const row = hasRank ? `
-      <span class="col-rank">${i + 1}</span>
+      <span class="col-rank">${team.rank}</span>
       <span class="col-logo">${teamLogoHTML(team.team_tag, 32)}</span>
       <span class="col-name">${team.team_name}</span>
       <span class="col-num">${team.wins}</span>
