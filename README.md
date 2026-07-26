@@ -27,6 +27,7 @@ svps-tracker/
 ├── data/
 │   ├── players.csv             選手マスタ（8チーム37名。youtube_url/twitch_url/ps_slugを保持。
 │   │                            詳細は「players.csvについて」参照）
+│   ├── result.json             チーム順位（手動更新。詳細は「チーム順位について」参照）
 │   ├── history.csv              蓄積される日次データ（ロング形式。followers/youtube_subscribers/
 │   │                             stream_duration/watch_time/video_view_count/video_upload_count/
 │   │                             cr_*系のみ。PS戦績はここには入らない。下記参照）
@@ -39,7 +40,8 @@ svps-tracker/
     ├── style.css                  増やしたり構成を変えたりしやすい作りにしてある
     ├── common.js                共通ロジック（データ読み込み・CSVパース・指標ラベル・アバター表示・
     │                             クラスアイコン表示など）
-    ├── index.html               選手一覧（トップページ）。写真付きカードから各選手ページへ
+    ├── index.html               チーム一覧（トップページ）。チームをクリックすると選手カードが展開される
+    │                             アコーディオン形式。並び順は通算獲得ポイント（match_results.csv集計）順
     ├── player.html              選手詳細（写真・現在値・X/YouTubeへのリンク・折れ線グラフ、
     │                             ?name=選手名 で表示選手を切替）
     ├── ranking.html             ランキング（指標×期間で選手を順位付け表示。全選手を常に表示）
@@ -47,6 +49,38 @@ svps-tracker/
     ├── images/players/          ダウンロードした選手写真（scrape_player_images.pyが生成、初回pushには含まれない）
     └── images/classes/          シャドバのクラスアイコン（ユーザー提供のSVG、8種）
 ```
+
+## 【重要】既存リポジトリを更新するときの注意
+
+`data/history.csv` / `data/match_results.csv` / `data/player_images.json` / `data/snapshots/` /
+`site/images/players/` は、GitHub Actionsが日々の実行で書き込んでいく実データです。
+そのため**このzipには含めていません**（コードだけのzipです）。
+
+以前のバージョンではこれらを空のプレースホルダーとして同梱していましたが、それを
+「リポジトリを一度空にしてから丸ごと差し替える」という手順と組み合わせたことで、
+運用中のリポジトリの実データ（フォロワー数・登録者数の推移、選手写真、試合結果など）を
+複数回消してしまいました。同じ事故を防ぐため、今後は次の手順にしてください。
+
+**2回目以降の更新手順（データを消さない方法）**:
+
+1. リポジトリを一度も消さない（`git rm -r .`や、フォルダの中身を全部消してから貼り付ける、
+   といった操作はしない）
+2. 代わりに、zipを展開した中の以下のファイル・フォルダだけを、既存のローカルリポジトリの
+   同じ場所に上書きコピーする（Explorer上で「置き換える」を選ぶ形でOK。存在しないファイルは
+   何も起きないので安全）:
+   - `.github/`
+   - `scripts/`
+   - `site/`（このzipには`site/images/players/`は含まれていないので、既存の選手写真は
+     上書きされずそのまま残る）
+   - `README.md`
+   - `data/players.csv`
+3. `data/history.csv` / `data/match_results.csv` / `data/player_images.json` /
+   `data/snapshots/` / `data/result.json`（手動更新を始めている場合）には一切触れない・
+   コピー対象に含めない
+4. コミット→push
+
+このzipの中に無いファイルは、コピー元に存在しないのでコピー先（あなたのリポジトリ）に
+何の影響も与えません。**「まず全部消す」という操作さえしなければ、既存データは自動的に守られます。**
 
 ## セットアップ手順
 
@@ -167,6 +201,54 @@ svlabo.jp（ランクマッチ最高順位）は当初、毎日自動取得→�
   デバッグしています。今後もエラーが出た場合は、Actionsの実行結果ページ右上の「...」から
   「Download log archive」でログ一式をダウンロードし、このチャットに添付してもらえれば
   同じ方法で調査できます。
+
+## チーム順位について（result.json）
+
+トップページ（`index.html`）はチームを現在の順位順にアコーディオン表示しますが、その順位の元データが
+`data/result.json`です。もともとは別プロジェクト（予想サイト「2026ps-fixed」）で使われていた
+スキーマをそのまま踏襲しています。
+
+```json
+{
+  "status": "in_progress",
+  "teams": [
+    { "id": 1, "win": 1, "lose": 0, "diff": 2, "battlepoint": 3 },
+    ...
+  ]
+}
+```
+
+`id`とチームの対応（`teams.json`由来、固定）:
+
+| id | team_tag | チーム名 |
+|---|---|---|
+| 1 | CR | Crazy Raccoon |
+| 2 | ZETA | ZETA DIVISION |
+| 3 | DFM | DetonatioN FocusMe |
+| 4 | VRL | VARREL |
+| 5 | MRG | MURASH GAMING |
+| 6 | RC | REJECT |
+| 7 | RDL | RIDDLE ORDER |
+| 8 | LVH | レバンガ北海道 |
+
+各項目の意味:
+
+- `win` / `lose`: そのチームの試合単位の勝敗数（1節につき1試合）
+- `diff`: 得失差の累計（勝った試合は+、負けた試合は-。例: 3-1で勝ったら+2）
+- `battlepoint`: そのチームが獲得した個人戦の勝ち数の累計（＝公式サイトの対戦カードに出るスコアの合計。
+  例: 3-1で勝ったら3、1-3で負けたら1）。この値の大小で順位を決めています。
+
+**このファイルはps.shadowverse-wb.comの公開APIなどではなく手動更新のファイルです**（自動取得はしていません）。
+1節終了ごとに、このリポジトリの`data/result.json`をGitHub上で直接編集して、各チームの
+`win`/`lose`/`diff`/`battlepoint`を更新・pushしてください（`status`は`"not_started"` → `"in_progress"` →
+`"final"`のように使うことを想定していますが、値自体は表示ロジックに影響しません）。pushすると
+`deploy-pages.yml`が反応して自動的にサイトに反映されます。
+
+まだ一度も更新していない（8チーム全員 win=lose=0）場合は、`site/common.js`の
+`computeTeamStandings()`が自動的に`data/match_results.csv`（選手個人の試合結果の集計）から
+順位を計算するフォールバックに切り替わります。ただしこちらは個人戦の合計ポイントだけを見ており、
+公式の得失差ボーナスなどは反映されないため、正式な順位としてはresult.jsonを更新していく方を
+推奨します。
 
 ## 試合結果について（match_results.csv / matches.html）
 

@@ -5,6 +5,12 @@ const DATA_URL = "data/history.csv";
 const PLAYERS_URL = "data/players.csv";
 const IMAGES_MANIFEST_URL = "data/player_images.json";
 const MATCHES_URL = "data/match_results.csv";
+const RESULT_JSON_URL = "data/result.json";
+
+// data/result.json の id (1〜8) と team_tag の対応。teams.json由来の並び順に合わせている。
+const RESULT_ID_TO_TAG = {
+  1: "CR", 2: "ZETA", 3: "DFM", 4: "VRL", 5: "MRG", 6: "RC", 7: "RDL", 8: "LVH",
+};
 
 // クラス名 → アイコンファイル名（アップロードされた公式クラスアイコンを使用）
 const CLASS_ICONS = {
@@ -136,16 +142,48 @@ function summarizeMatches(matches, playerName) {
   return { played: rows.length, wins, losses, points, winRate: rows.length ? wins / rows.length : null };
 }
 
-// 8チームを「現在の順位」で並べる。順位は各選手の獲得ポイント（match_results.csvのpoint合計）を
-// チーム単位で合算したもの。公式サイトの各節の対戦カードに出る点数（例: Crazy Raccoon 3-1 ZETA）は
-// その節の個人戦ポイントの合計と一致するため、通算獲得ポイントの合計はチーム成績の近似として妥当。
+// data/result.json を読み込む（手動更新される公式チーム順位。無ければnullを返す）。
+async function loadResultJson() {
+  try {
+    const resp = await fetch(RESULT_JSON_URL);
+    if (!resp.ok) return null;
+    return await resp.json();
+  } catch (e) {
+    return null;
+  }
+}
+
+// 8チームを「現在の順位」で並べる。
+// 優先順位:
+//   1. data/result.json に実データがあればそれを使う（手動更新される公式の勝敗・得失差・獲得ポイント）
+//   2. まだ入力されていない場合は match_results.csv から自動集計した値にフォールバックする
+//      （各選手の獲得ポイント[point]をチーム単位で合算。公式の対戦カードの点数と一致する値なので
+//      近似として妥当）
 // まだ試合が無い場合はplayers.csv記載順のまま返す。
-function computeTeamStandings(players, matches) {
+function computeTeamStandings(players, matches, resultJson) {
   const teams = {};
   players.forEach(p => {
-    if (!teams[p.team_tag]) teams[p.team_tag] = { team_tag: p.team_tag, team_name: p.team_name, players: [], points: 0, wins: 0, losses: 0 };
+    if (!teams[p.team_tag]) teams[p.team_tag] = { team_tag: p.team_tag, team_name: p.team_name, players: [], points: 0, wins: 0, losses: 0, diff: 0 };
     teams[p.team_tag].players.push(p);
   });
+
+  const resultTeams = resultJson && Array.isArray(resultJson.teams) ? resultJson.teams : [];
+  const resultHasData = resultTeams.some(t => (t.win || 0) + (t.lose || 0) > 0);
+
+  if (resultHasData) {
+    resultTeams.forEach(t => {
+      const tag = RESULT_ID_TO_TAG[t.id];
+      if (!tag || !teams[tag]) return;
+      teams[tag].points = t.battlepoint || 0;
+      teams[tag].wins = t.win || 0;
+      teams[tag].losses = t.lose || 0;
+      teams[tag].diff = t.diff || 0;
+    });
+    const list = Object.values(teams);
+    list.sort((a, b) => b.points - a.points || b.diff - a.diff || b.wins - a.wins);
+    return { list, source: "result.json" };
+  }
+
   matches.forEach(m => {
     const t = teams[m.team_tag];
     if (!t) return;
@@ -156,7 +194,7 @@ function computeTeamStandings(players, matches) {
   const list = Object.values(teams);
   const hasMatches = matches.length > 0;
   if (hasMatches) {
-    list.sort((a, b) => b.points - a.points);
+    list.sort((a, b) => b.points - a.points || b.wins - a.wins);
   }
-  return list;
+  return { list, source: hasMatches ? "match_results.csv" : "none" };
 }

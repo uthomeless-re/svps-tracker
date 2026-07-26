@@ -76,6 +76,7 @@ jobs:
           cp data/players.csv _site/data/players.csv
           cp -f data/player_images.json _site/data/player_images.json 2>/dev/null || true
           cp -f data/match_results.csv _site/data/match_results.csv 2>/dev/null || true
+          cp -f data/result.json _site/data/result.json 2>/dev/null || true
 
       - name: Setup Pages
         uses: actions/configure-pages@v5

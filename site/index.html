@@ -42,25 +42,26 @@ function playerCardHTML(p, history, images) {
 
 async function boot() {
   const app = document.getElementById("app");
-  let data, matches;
+  let data, matches, resultJson;
   try {
-    [data, matches] = await Promise.all([loadData(), loadMatches()]);
+    [data, matches, resultJson] = await Promise.all([loadData(), loadMatches(), loadResultJson()]);
   } catch (err) {
     app.innerHTML = `<div class="error-banner">データ読み込みエラー: ${err.message}（まだ一度もデータ更新が走っていない可能性があります）</div>`;
     return;
   }
 
   const { players, history, images } = data;
-  const standings = computeTeamStandings(players, matches);
-  const hasMatches = matches.length > 0;
+  const { list: standings, source } = computeTeamStandings(players, matches, resultJson);
+  const hasRank = source !== "none";
 
   const blocks = standings.map((team, i) => {
     const cards = team.players.map(p => playerCardHTML(p, history, images)).join("");
-    const pointsLabel = hasMatches ? `${fmtNum(team.points)}pt（${team.wins}勝${team.losses}敗）` : "試合結果はまだありません";
+    const diffLabel = source === "result.json" ? `（${team.wins}勝${team.losses}敗 / 得失差${team.diff >= 0 ? "+" : ""}${team.diff}）` : `（${team.wins}勝${team.losses}敗）`;
+    const pointsLabel = hasRank ? `${fmtNum(team.points)}pt${diffLabel}` : "試合結果はまだありません";
     return `
-      <details class="team-block" ${i === 0 && hasMatches ? "open" : ""}>
+      <details class="team-block" ${i === 0 && hasRank ? "open" : ""}>
         <summary>
-          <span class="team-rank">${hasMatches ? i + 1 : "-"}</span>
+          <span class="team-rank">${hasRank ? i + 1 : "-"}</span>
           ${teamBadgeHTML(team.team_tag)}
           <span class="team-title">${team.team_name}</span>
           <span class="team-points">${pointsLabel}</span>
