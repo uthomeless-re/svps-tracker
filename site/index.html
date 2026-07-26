@@ -48,7 +48,7 @@ async function boot() {
   try {
     [data, matches, resultJson] = await Promise.all([loadData(), loadMatches(), loadResultJson()]);
   } catch (err) {
-    app.innerHTML = `<div class="error-banner">データ読み込みエラー: ${err.message}（まだ一度もデータ更新が走っていない可能性があります）</div>`;
+    app.innerHTML = `<div class="error-banner">データ読み込みエラー: ${err.message}</div>`;
     return;
   }
 

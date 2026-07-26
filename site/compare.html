@@ -28,51 +28,6 @@ let chart = null;
 let selected = new Set();
 let players = [], history = [];
 
-// 折れ線の右端（各系列の最新データ点）に選手名を直接表示するプラグイン。
-// 凡例だけだと色を1つずつ照合しないといけないので、線の終点に直接名前を出す方がわかりやすい。
-// 値が近い選手同士はラベルが重なってしまうため、y座標でソートして最低間隔を空くまで
-// 縦にずらす（値が詰まっている場合の一般的なラベル衝突回避）。
-const endLabelPlugin = {
-  id: "endLabels",
-  afterDatasetsDraw(chartInstance) {
-    const { ctx } = chartInstance;
-    const items = [];
-    chartInstance.data.datasets.forEach((ds, i) => {
-      const meta = chartInstance.getDatasetMeta(i);
-      if (!meta || meta.hidden) return;
-      let idx = ds.data.length - 1;
-      while (idx >= 0 && (ds.data[idx] === null || ds.data[idx] === undefined)) idx--;
-      if (idx < 0) return;
-      const point = meta.data[idx];
-      if (!point) return;
-      items.push({ label: ds.label, color: ds.borderColor, x: point.x, y: point.y });
-    });
-    if (!items.length) return;
-
-    const minGap = 13; // ラベル同士の最低縦間隔(px)
-    items.sort((a, b) => a.y - b.y);
-    for (let i = 1; i < items.length; i++) {
-      if (items[i].y - items[i - 1].y < minGap) items[i].y = items[i - 1].y + minGap;
-    }
-    const bottom = chartInstance.chartArea.bottom;
-    if (items[items.length - 1].y > bottom) {
-      items[items.length - 1].y = bottom;
-      for (let i = items.length - 2; i >= 0; i--) {
-        if (items[i + 1].y - items[i].y < minGap) items[i].y = items[i + 1].y - minGap;
-      }
-    }
-
-    ctx.save();
-    ctx.font = "11px sans-serif";
-    ctx.textBaseline = "middle";
-    items.forEach(item => {
-      ctx.fillStyle = item.color;
-      ctx.fillText(item.label, item.x + 6, item.y);
-    });
-    ctx.restore();
-  },
-};
-
 // 折れ線グラフとして意味のある指標だけ（player.htmlと同じ考え方）
 const CHART_METRICS = [
   { id: "followers", requires: "followers" },
@@ -138,10 +93,8 @@ function drawCompareChart() {
   chart = new Chart(document.getElementById("chart"), {
     type: "line",
     data: { labels, datasets },
-    plugins: [endLabelPlugin],
     options: {
       responsive: true,
-      layout: { padding: { right: 90 } }, // 右端の名前ラベル用の余白
       plugins: { legend: { position: "bottom", labels: { boxWidth: 10 } } },
       scales: {
         x: { ticks: { color: "#6b7280" }, grid: { color: "#f0f1f3" } },
@@ -326,7 +279,7 @@ function renderGraphMode(container) {
       <div class="team-select-row" id="teamButtons"></div>
     </div>
     <div class="control-group" style="margin-bottom:16px;">
-      <label>選手を個別に選択（クリックで追加/解除）</label>
+      <label>選手を個別に選択</label>
       <div class="team-select-row" style="margin-bottom:6px;">
         <button class="team-select-btn" id="selectAllBtn">全選択</button>
         <button class="team-select-btn" id="deselectAllBtn">全解除</button>

@@ -123,7 +123,7 @@ function renderRatingTab(container, svlaboPeriods, classes) {
       </div>
       <div class="control-group">
         <label>選手検索</label>
-        <input type="text" id="querySelect" placeholder="選手名で検索（全期間・全クラスを横断）">
+        <input type="text" id="querySelect" placeholder="選手名で検索">
       </div>
     </div>
     <div id="tableWrap"></div>
@@ -152,15 +152,12 @@ function renderRatingTab(container, svlaboPeriods, classes) {
     const isAllClasses = filters.class === "";
     let rows;
     if (isAllClasses) {
-      const byPlayer = {};
-      svlabo.filter(r => r.period === filters.period).forEach(r => {
-        const key = r.team_tag + "|" + r.player_name;
-        const rating = parseFloat(r.rating) || 0;
-        if (!byPlayer[key] || rating > byPlayer[key].rating) {
-          byPlayer[key] = { team_tag: r.team_tag, player_name: r.player_name, rating, best_class: r.class };
-        }
-      });
-      rows = Object.values(byPlayer);
+      // 「全クラス合算」＝7クラス分のperiodごとのリーダーボードを1つに merge しただけのもの。
+      // 1人の選手が複数クラスで高レートなら、その分だけ複数行に登場するのが正しい
+      // （svlabo.jp側もクラスごとに別エントリなので、選手単位で1行に集約してしまうと
+      // 本来 上位に入っているはずの2つ目・3つ目のクラスの成績が消えてしまう）。
+      rows = svlabo.filter(r => r.period === filters.period)
+        .map(r => ({ team_tag: r.team_tag, player_name: r.player_name, rating: parseFloat(r.rating) || 0, class: r.class }));
     } else {
       rows = svlabo.filter(r => r.period === filters.period && r.class === filters.class)
         .map(r => ({ team_tag: r.team_tag, player_name: r.player_name, rating: parseFloat(r.rating) || 0, rank: parseInt(r.rank, 10) }));
@@ -178,13 +175,13 @@ function renderRatingTab(container, svlaboPeriods, classes) {
         <td class="rank-value">${r.rank}位</td>
         <td>${teamCellHTML(r.team_tag)}</td>
         <td>${playerNameCellHTML(r.player_name)}</td>
-        ${isAllClasses ? `<td>${classIconHTML(r.best_class, 20)}</td>` : ""}
+        ${isAllClasses ? `<td>${classIconHTML(r.class, 20)}</td>` : ""}
         <td class="rank-value">${fmtNum(r.rating)}</td>
       </tr>`).join("");
 
     tableWrap.innerHTML = rows.length ? `
       <table class="rank-table">
-        <thead><tr><th>順位</th><th>チーム</th><th>選手</th>${isAllClasses ? "<th>最高クラス</th>" : ""}<th>レート</th></tr></thead>
+        <thead><tr><th>順位</th><th>チーム</th><th>選手</th>${isAllClasses ? "<th>クラス</th>" : ""}<th>レート</th></tr></thead>
         <tbody>${body}</tbody>
       </table>` : `<div class="empty-note">該当する選手がいません</div>`;
   }
