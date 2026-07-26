@@ -376,10 +376,10 @@ function classPoolHTML(poolStr, usedName, size) {
 function findBattleDetail(battleDetails, teamTag, playerName, opponentTeamTag) {
   for (const b of battleDetails) {
     if (b.team1 === teamTag && b.team2 === opponentTeamTag && b.player1 === playerName) {
-      return { pool: b.class1_pool, used: b.class1_used, video_url: b.video_url };
+      return { pool: b.class1_pool, used: b.class1_used, video_url: b.video_url, section: b.section };
     }
     if (b.team2 === teamTag && b.team1 === opponentTeamTag && b.player2 === playerName) {
-      return { pool: b.class2_pool, used: b.class2_used, video_url: b.video_url };
+      return { pool: b.class2_pool, used: b.class2_used, video_url: b.video_url, section: b.section };
     }
   }
   return null;

@@ -155,7 +155,7 @@ function renderLeaderboard(container, players, images, matches) {
 function renderPlayerMatches(app, players, images, matches, battleDetails, name) {
   const player = players.find(p => p.player_name === name);
   if (!player) {
-    app.innerHTML = `<a class="back-link" href="rounds.html">← 通算成績に戻る</a><div class="empty-note">選手が見つかりません</div>`;
+    app.innerHTML = `<a class="back-link" href="rounds.html">通算成績に戻る</a><div class="empty-note">選手が見つかりません</div>`;
     return;
   }
 
@@ -172,7 +172,7 @@ function renderPlayerMatches(app, players, images, matches, battleDetails, name)
     const classCell = detail ? classPoolHTML(detail.pool, detail.used, 18) : `<span class="vs-cell">${classIconHTML(r.class)}</span>`;
     return `
     <tr>
-      <td>${r.round}</td>
+      <td>${detail && detail.section ? "第" + detail.section + "節" : "-"}</td>
       <td>${classCell}</td>
       <td>
         <span class="vs-cell">
@@ -187,7 +187,7 @@ function renderPlayerMatches(app, players, images, matches, battleDetails, name)
   }).join("");
 
   app.innerHTML = `
-    <a class="back-link" href="rounds.html">← 通算成績に戻る</a>
+    <a class="back-link" href="rounds.html">通算成績に戻る</a>
     <div class="detail-header">
       ${avatarHTML(player, images, 56)}
       <div class="info">
@@ -200,7 +200,7 @@ function renderPlayerMatches(app, players, images, matches, battleDetails, name)
       <div class="quick-stat"><div class="label">勝率</div><div class="value">${stats.played ? (stats.winRate * 100).toFixed(0) + "%" : "-"}</div></div>
     </div>
     <table class="rank-table">
-      <thead><tr><th>日時</th><th>使用クラス</th><th>対戦相手</th><th>結果</th><th>配信</th></tr></thead>
+      <thead><tr><th>節</th><th>使用クラス</th><th>対戦相手</th><th>結果</th><th>配信</th></tr></thead>
       <tbody>${body}</tbody>
     </table>
   `;

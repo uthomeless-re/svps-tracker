@@ -144,6 +144,11 @@ table.rank-table tr:hover td { background: #fafbfc; }
 .rank-num.gold { color: #b8860b; }
 .rank-num.silver { color: #8a8a8a; }
 .rank-num.bronze { color: #a05a2c; }
+/* BEYONDランキング等で上位を薄く色分けするための行ハイライト（1〜3位は暖色、4〜10位は控えめに） */
+tr.rank-row-top3 td { background: rgba(184, 134, 11, 0.08); }
+tr.rank-row-top3:hover td { background: rgba(184, 134, 11, 0.13); }
+tr.rank-row-top10 td { background: rgba(47, 111, 237, 0.05); }
+tr.rank-row-top10:hover td { background: rgba(47, 111, 237, 0.09); }
 .player-link { cursor: pointer; font-weight: 600; color: inherit; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; }
 .player-link:hover { color: var(--accent); }
 .rank-value { font-weight: 700; }

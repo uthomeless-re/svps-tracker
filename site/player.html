@@ -83,7 +83,7 @@ async function boot() {
 
   const player = players.find(p => p.player_name === name);
   if (!player) {
-    app.innerHTML = `<a class="back-link" href="index.html">← 選手一覧に戻る</a><div class="empty-note">選手が見つかりません</div>`;
+    app.innerHTML = `<a class="back-link" href="index.html">選手一覧に戻る</a><div class="empty-note">選手が見つかりません</div>`;
     return;
   }
 
@@ -108,7 +108,7 @@ async function boot() {
   const color = TEAM_COLORS[player.team_tag] || "#888";
 
   app.innerHTML = `
-    <a class="back-link" href="index.html">← 選手一覧に戻る</a>
+    <a class="back-link" href="index.html">選手一覧に戻る</a>
     <div class="detail-header">
       ${avatarHTML(player, images, 72)}
       <div class="info">

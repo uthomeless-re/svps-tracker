@@ -35,9 +35,10 @@
 // 横断的に検索する（特定の選手を探したいだけなのに期間とクラスを両方合わせないと
 // 見つからないのは不便なため）。この横断検索は「レート」タブの時だけ意味を持つ
 // （「TOP N入り回数」はもともと全期間・全クラス集計なので検索は単純に名前で絞るだけでよい）。
+// （チームでの絞り込みは役に立たなかったため廃止した。選手検索だけで十分。）
 let svlabo = [], playerLookup = {};
 let boardMode = "rating";
-const filters = { period: null, class: "", threshold: 100, team: "", query: "" };
+const filters = { period: null, class: "", threshold: 100, query: "" };
 
 function playerNameCellHTML(rawName) {
   const p = lookupPlayer(playerLookup, rawName);
@@ -51,10 +52,6 @@ function teamCellHTML(rawTag) {
   const tag = resolveTeamTag(rawTag);
   if (!tag) return `<span style="color:var(--text-muted);">-</span>`;
   return teamLogoHTML(tag, 20);
-}
-
-function teamOptionsHTML(teams) {
-  return `<option value="">すべて</option>${teams.map(t => `<option value="${t}">${t}</option>`).join("")}<option value="__none__">無所属のみ</option>`;
 }
 
 // svlabo全体を通して選手を1人1行に重複除去した一覧（名前を正規化して同一人物とみなす）。
@@ -71,28 +68,28 @@ function uniqueSvlaboPlayers(list) {
   return out;
 }
 
-function applyTeamAndSearch(rows, team, query) {
-  let out = rows;
-  if (team === "__none__") out = out.filter(r => !r.team_tag);
-  else if (team) out = out.filter(r => resolveTeamTag(r.team_tag) === team);
-  if (query.trim()) {
-    const q = normalizeName(query);
-    out = out.filter(r => normalizeName(r.player_name).includes(q));
-  }
-  return out;
+function applySearch(rows, query) {
+  if (!query.trim()) return rows;
+  const q = normalizeName(query);
+  return rows.filter(r => normalizeName(r.player_name).includes(q));
+}
+
+// 上位を薄く色分けするための行クラス（1〜3位・4〜10位をそれぞれ軽くハイライトする）。
+function rankRowClass(rank) {
+  if (rank == null) return "";
+  if (rank <= 3) return "rank-row-top3";
+  if (rank <= 10) return "rank-row-top10";
+  return "";
 }
 
 // 選手検索モード: 期間・クラス・指標の絞り込みを無視して、名前が一致する行を
 // 全期間×全クラス横断でそのまま列挙する（svlaboの生データをそのまま見せる）。
-function renderSearchResults(container, teams) {
-  let rows = svlabo.slice();
-  if (filters.team === "__none__") rows = rows.filter(r => !r.team_tag);
-  else if (filters.team) rows = rows.filter(r => resolveTeamTag(r.team_tag) === filters.team);
+function renderSearchResults(container) {
   const q = normalizeName(filters.query);
-  rows = rows.filter(r => normalizeName(r.player_name).includes(q));
+  const rows = svlabo.filter(r => normalizeName(r.player_name).includes(q));
 
   const body = rows.map(r => `
-    <tr>
+    <tr class="${rankRowClass(parseInt(r.rank, 10))}">
       <td>${escapeAttr(r.period)}</td>
       <td>${classIconHTML(r.class, 20)}</td>
       <td class="rank-value">${r.rank}位</td>
@@ -108,7 +105,7 @@ function renderSearchResults(container, teams) {
     </table>` : `<div class="empty-note">該当する選手がいません</div>`;
 }
 
-function renderRatingTab(container, svlaboPeriods, classes, teams) {
+function renderRatingTab(container, svlaboPeriods, classes) {
   container.innerHTML = `
     <div class="control-row">
       <div class="control-group">
@@ -123,10 +120,6 @@ function renderRatingTab(container, svlaboPeriods, classes, teams) {
         </select>
       </div>
       <div class="control-group">
-        <label>チーム</label>
-        <select id="teamSelect">${teamOptionsHTML(teams)}</select>
-      </div>
-      <div class="control-group">
         <label>選手検索</label>
         <input type="text" id="querySelect" placeholder="選手名で検索（全期間・全クラスを横断）">
       </div>
@@ -135,25 +128,21 @@ function renderRatingTab(container, svlaboPeriods, classes, teams) {
   `;
   const periodSelect = container.querySelector("#periodSelect");
   const classSelect = container.querySelector("#classSelect");
-  const teamSelect = container.querySelector("#teamSelect");
   const querySelect = container.querySelector("#querySelect");
   periodSelect.value = filters.period;
   classSelect.value = filters.class;
-  teamSelect.value = filters.team;
   querySelect.value = filters.query;
 
   function draw() {
     filters.period = periodSelect.value;
     filters.class = classSelect.value;
-    filters.team = teamSelect.value;
     filters.query = querySelect.value;
 
     const tableWrap = container.querySelector("#tableWrap");
 
-    // 選手検索、またはチームを絞り込んでいる時は、期間・クラスの絞り込みを無視して
-    // 全期間×全クラス横断で結果を出す（1つの期間×クラスだけを見ても、そのチームの選手が
-    // たまたま出ていないと空っぽになってしまい役に立たないため。特定の選手を探す時と同じ考え方）。
-    if (filters.query.trim() || filters.team) {
+    // 選手検索中は、期間・クラスの絞り込みを無視して全期間×全クラス横断で結果を出す
+    // （特定の選手を探したいだけなのに期間とクラスを両方合わせないと見つからないのは不便なため）。
+    if (filters.query.trim()) {
       renderSearchResults(tableWrap);
       return;
     }
@@ -174,7 +163,6 @@ function renderRatingTab(container, svlaboPeriods, classes, teams) {
       rows = svlabo.filter(r => r.period === filters.period && r.class === filters.class)
         .map(r => ({ team_tag: r.team_tag, player_name: r.player_name, rating: parseFloat(r.rating) || 0, rank: parseInt(r.rank, 10) }));
     }
-    rows = applyTeamAndSearch(rows, filters.team, "");
     if (isAllClasses) {
       rows.sort((a, b) => b.rating - a.rating);
       rows = rows.slice(0, 100);
@@ -184,7 +172,7 @@ function renderRatingTab(container, svlaboPeriods, classes, teams) {
     }
 
     const body = rows.map(r => `
-      <tr>
+      <tr class="${rankRowClass(r.rank)}">
         <td class="rank-value">${r.rank}位</td>
         <td>${teamCellHTML(r.team_tag)}</td>
         <td>${playerNameCellHTML(r.player_name)}</td>
@@ -199,23 +187,19 @@ function renderRatingTab(container, svlaboPeriods, classes, teams) {
       </table>` : `<div class="empty-note">該当する選手がいません</div>`;
   }
 
-  [periodSelect, classSelect, teamSelect].forEach(el => el.addEventListener("change", draw));
+  [periodSelect, classSelect].forEach(el => el.addEventListener("change", draw));
   querySelect.addEventListener("input", draw);
   draw();
 }
 
 // 「TOP N入り回数」タブ: 全期間・全クラスを通じて「順位がしきい値以内だった回数」を
 // svlaboに載っている全ユーザー分について数え、回数の多い順に並べる。
-function renderCrCountTab(container, teams) {
+function renderCrCountTab(container) {
   container.innerHTML = `
     <div class="control-row">
       <div class="control-group">
         <label>しきい値</label>
         <select id="thresholdSelect">${CR_TOPN_THRESHOLDS.map(t => `<option value="${t}">TOP${t}以内</option>`).join("")}</select>
-      </div>
-      <div class="control-group">
-        <label>チーム</label>
-        <select id="teamSelect">${teamOptionsHTML(teams)}</select>
       </div>
       <div class="control-group">
         <label>選手検索</label>
@@ -225,25 +209,22 @@ function renderCrCountTab(container, teams) {
     <div id="tableWrap"></div>
   `;
   const thresholdSelect = container.querySelector("#thresholdSelect");
-  const teamSelect = container.querySelector("#teamSelect");
   const querySelect = container.querySelector("#querySelect");
   thresholdSelect.value = filters.threshold;
-  teamSelect.value = filters.team;
   querySelect.value = filters.query;
 
   function draw() {
     filters.threshold = parseInt(thresholdSelect.value, 10);
-    filters.team = teamSelect.value;
     filters.query = querySelect.value;
 
     const counts = crTopNCounts(svlabo, filters.threshold);
-    const population = applyTeamAndSearch(uniqueSvlaboPlayers(svlabo), filters.team, filters.query);
+    const population = applySearch(uniqueSvlaboPlayers(svlabo), filters.query);
     let rows = population.map(u => ({ team_tag: u.team_tag, player_name: u.player_name, rating: counts[normalizeName(u.player_name)] || 0 }));
     rows.sort((a, b) => b.rating - a.rating);
     assignCompetitionRanks(rows, r => r.rating);
 
     const body = rows.map(r => `
-      <tr>
+      <tr class="${rankRowClass(r.rank)}">
         <td class="rank-value">${r.rank}位</td>
         <td>${teamCellHTML(r.team_tag)}</td>
         <td>${playerNameCellHTML(r.player_name)}</td>
@@ -257,12 +238,12 @@ function renderCrCountTab(container, teams) {
       </table>` : `<div class="empty-note">該当する選手がいません</div>`;
   }
 
-  [thresholdSelect, teamSelect].forEach(el => el.addEventListener("change", draw));
+  thresholdSelect.addEventListener("change", draw);
   querySelect.addEventListener("input", draw);
   draw();
 }
 
-function renderBoard(app, svlaboPeriods, classes, teams) {
+function renderBoard(app, svlaboPeriods, classes) {
   app.innerHTML = `
     <div class="team-select-row" style="margin-bottom:14px;">
       <button class="team-select-btn ${boardMode === "rating" ? "active" : ""}" id="modeRatingBtn"
@@ -272,12 +253,12 @@ function renderBoard(app, svlaboPeriods, classes, teams) {
     </div>
     <div id="tabContent"></div>
   `;
-  document.getElementById("modeRatingBtn").addEventListener("click", () => { boardMode = "rating"; renderBoard(app, svlaboPeriods, classes, teams); });
-  document.getElementById("modeCrBtn").addEventListener("click", () => { boardMode = "cr"; renderBoard(app, svlaboPeriods, classes, teams); });
+  document.getElementById("modeRatingBtn").addEventListener("click", () => { boardMode = "rating"; renderBoard(app, svlaboPeriods, classes); });
+  document.getElementById("modeCrBtn").addEventListener("click", () => { boardMode = "cr"; renderBoard(app, svlaboPeriods, classes); });
 
   const content = document.getElementById("tabContent");
-  if (boardMode === "cr") renderCrCountTab(content, teams);
-  else renderRatingTab(content, svlaboPeriods, classes, teams);
+  if (boardMode === "cr") renderCrCountTab(content);
+  else renderRatingTab(content, svlaboPeriods, classes);
 }
 
 async function boot() {
@@ -298,12 +279,11 @@ async function boot() {
   // ファイル内での出現順が新しい期間から並んでいるので、そのまま使う（先頭が最新）。
   const periods = [...new Set(svlabo.map(r => r.period))];
   const classes = [...new Set(svlabo.map(r => r.class))];
-  const teams = [...new Set(svlabo.map(r => resolveTeamTag(r.team_tag)).filter(Boolean))].sort((a, b) => a.localeCompare(b));
 
   filters.period = periods[0];
   filters.class = ""; // デフォルトは「すべて」
 
-  renderBoard(app, periods, classes, teams);
+  renderBoard(app, periods, classes);
 }
 
 boot();
