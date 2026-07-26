@@ -12,6 +12,8 @@ on:
       - "site/**"
       - "data/history.csv"
       - "data/players.csv"
+      - "data/player_images.json"
+      - "data/match_results.csv"
   workflow_dispatch: {}
 
 permissions:
@@ -37,6 +39,8 @@ jobs:
           mkdir -p _site/data
           cp data/history.csv _site/data/history.csv
           cp data/players.csv _site/data/players.csv
+          cp -f data/player_images.json _site/data/player_images.json 2>/dev/null || true
+          cp -f data/match_results.csv _site/data/match_results.csv 2>/dev/null || true
 
       - name: Setup Pages
         uses: actions/configure-pages@v5

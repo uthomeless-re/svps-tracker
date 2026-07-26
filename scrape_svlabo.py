@@ -1,1 +1,0 @@
-[{"round": "2026.07.11 R1", "team1": "Crazy Raccoon", "team2": "ZETA DIVISION", "player_name": "Atom", "class": "ビショップ", "result": "WIN", "point": 1, "date": "2026-07-26", "source": "ps"}]

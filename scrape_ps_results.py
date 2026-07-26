@@ -1,1 +1,0 @@
-[{"team_tag_site": "CR", "player_name_site": "Atom", "matched_player": "Atom", "team_tag": "CR", "top100_count": 36, "best_rank_overall": 2, "breakdown": [{"period": "神殺し・アナテマ 後半戦", "class": "ネメシス", "rank": 89, "rating": 2169}], "date": "2026-07-26", "source": "svlabo.jp"}]

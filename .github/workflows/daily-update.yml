@@ -50,6 +50,11 @@ jobs:
         env:
           YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
 
+      - name: Fetch player photos
+        working-directory: scripts
+        run: python scrape_player_images.py
+        continue-on-error: true  # 写真は既にある選手はスキップするので、失敗しても他の処理は続ける
+
       - name: Merge into history.csv
         working-directory: scripts
         run: python update_history.py
@@ -58,7 +63,7 @@ jobs:
         run: |
           git config user.name "svps-tracker-bot"
           git config user.email "actions@users.noreply.github.com"
-          git add data/
+          git add data/ site/images/
           git diff --cached --quiet && echo "No changes" || git commit -m "chore: daily stats update $(date -u +%Y-%m-%d)"
           git push
 
@@ -69,6 +74,8 @@ jobs:
           mkdir -p _site/data
           cp data/history.csv _site/data/history.csv
           cp data/players.csv _site/data/players.csv
+          cp -f data/player_images.json _site/data/player_images.json 2>/dev/null || true
+          cp -f data/match_results.csv _site/data/match_results.csv 2>/dev/null || true
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
