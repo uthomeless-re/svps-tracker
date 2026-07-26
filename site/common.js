@@ -299,6 +299,25 @@ function classPoolHTML(poolStr, usedName, size) {
   }).join("")}</span>`;
 }
 
+// match_results.csv（ps.shadowverse-wb.com由来、roundは日時文字列）と
+// battle_details.csv（svlabo.jp由来、section/half/round_no/battle_no単位）は採番方式が
+// 別々で共通のキーが無いため、「対戦したチームの組み合わせ + 選手名」で突き合わせる。
+// 現状の投入データでは各(team1,team2)の組み合わせは節をまたいで重複しないため、この
+// キーだけでも一意に特定できている（将来、同じ2チームが複数節で再度当たった場合は
+// 突き合わせがあいまいになる可能性がある。その場合はround/日付も使った突き合わせに拡張が必要）。
+// 見つかった場合、その選手側のクラスpool・使用クラス・配信URLを返す。見つからなければnull。
+function findBattleDetail(battleDetails, teamTag, playerName, opponentTeamTag) {
+  for (const b of battleDetails) {
+    if (b.team1 === teamTag && b.team2 === opponentTeamTag && b.player1 === playerName) {
+      return { pool: b.class1_pool, used: b.class1_used, video_url: b.video_url };
+    }
+    if (b.team2 === teamTag && b.team1 === opponentTeamTag && b.player2 === playerName) {
+      return { pool: b.class2_pool, used: b.class2_used, video_url: b.video_url };
+    }
+  }
+  return null;
+}
+
 // data/result.json を読み込む（手動更新される公式チーム順位。無ければnullを返す）。
 async function loadResultJson() {
   try {

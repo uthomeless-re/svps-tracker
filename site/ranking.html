@@ -95,6 +95,13 @@ async function boot() {
   const thresholdGroup = document.getElementById("thresholdGroup");
   const thresholdSelect = document.getElementById("rankThresholdSelect");
 
+  // player.htmlなど他ページから「?metric=stream_duration_cumulative」のようにリンクされた場合、
+  // その指標を最初から選択した状態で開けるようにする（該当する<option>が無ければ無視して既定値のまま）。
+  const requestedMetric = new URLSearchParams(location.search).get("metric");
+  if (requestedMetric && [...metricSelect.options].some(o => o.value === requestedMetric)) {
+    metricSelect.value = requestedMetric;
+  }
+
   function refreshControls() {
     const metric = metricSelect.value;
     const needsPeriod = !isCurrentMetric(metric) && !isCumulativeMetric(metric) && !isCrMetric(metric);

@@ -117,21 +117,22 @@ async function boot() {
       <div class="quick-stat">
         <div class="label">Xフォロワー数</div>
         <div class="value">${followers != null ? fmtNum(followers) : "-"}</div>
-        ${player.x_url ? `<a href="${player.x_url}" target="_blank" rel="noopener" style="font-size:12px;">Xで見る →</a>` : ""}
+        ${player.x_url ? `<a href="${player.x_url}" target="_blank" rel="noopener" style="font-size:12px;">X</a>` : ""}
       </div>
       <div class="quick-stat">
         <div class="label">YouTube登録者数</div>
         <div class="value">${yt != null ? fmtNum(yt) : "-"}</div>
-        ${player.youtube_url ? `<a href="${player.youtube_url}" target="_blank" rel="noopener" style="font-size:12px;">YouTubeで見る →</a>` : ""}
+        ${player.youtube_url ? `<a href="${player.youtube_url}" target="_blank" rel="noopener" style="font-size:12px;">YouTube</a>` : ""}
       </div>
       <div class="quick-stat">
         <div class="label">累積配信時間</div>
         <div class="value">${streamTotal != null ? fmtNum(streamTotal) + "h" : "-"}</div>
+        <a href="ranking.html?metric=stream_duration_cumulative" style="font-size:12px;">ランキング</a>
       </div>
       <div class="quick-stat">
         <div class="label">PS公式戦</div>
         <div class="value" style="font-size:14px;">試合結果を見る</div>
-        <a href="matches.html?name=${encodeURIComponent(name)}" style="font-size:12px;">通算成績・対戦履歴 →</a>
+        <a href="matches.html?name=${encodeURIComponent(name)}" style="font-size:12px;">対戦履歴</a>
       </div>
     </div>
     ${metrics.length ? `
@@ -140,7 +141,7 @@ async function boot() {
           <label>指標</label>
           <select id="metricSelect">${metrics.map(m => `<option value="${m}">${metricLabel(m)}</option>`).join("")}</select>
         </div>
-        <a href="compare.html" style="font-size:13px;">他の選手と比較する →</a>
+        <a href="compare.html" style="font-size:13px;">比較する</a>
       </div>
       <div class="chart-box"><canvas id="chart"></canvas></div>
     ` : `<div class="empty-note">この選手のデータはまだありません</div>`}

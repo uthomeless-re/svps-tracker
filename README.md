@@ -202,6 +202,15 @@ python update_history.py の実行は不要（このデータはhistory.csvと�
 再調査が必要）。重複排除のキーは`(section, half, round_no, battle_no)`なので、同じ節を複数回取り込んでも
 行が増殖することはありません。
 
+**matches.htmlとの突き合わせについて**: `match_results.csv`（公式サイト由来、roundは日時文字列）と
+`battle_details.csv`（svlabo.jp由来、section/half/round_no/battle_no採番）は採番方式が別なので、
+共通のキーがありません。そのため`matches.html`の個人成績表では「対戦した2チームの組み合わせ＋選手名」
+（`findBattleDetail()`、`site/common.js`）で突き合わせています。取り込み済みの節に実際にその選手が
+個人戦で出場していれば配信リンクと未使用クラスが表示されますが、**まだ取り込んでいない節の試合や、
+その節でチームバトル枠にしか出ていない選手の試合は突き合わせが見つからず「配信: -」のままになります**
+（バグではなく、単にその試合をカバーするsvlabo.jp記事をまだ取り込んでいないだけです。該当する節の
+記事URLが分かれば`scrape_svlabo_battle_details.py`で追加取り込みできます）。
+
 ## 既知の制約・注意点
 
 - **shadowverse-reference.comは非公式のファンサイトです**（ps.shadowverse-wb.comは公式サイト）。

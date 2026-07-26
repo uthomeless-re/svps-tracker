@@ -27,9 +27,9 @@ async function boot() {
   const app = document.getElementById("app");
   const name = new URLSearchParams(location.search).get("name");
 
-  let data, matches;
+  let data, matches, battleDetails;
   try {
-    [data, matches] = await Promise.all([loadData(), loadMatches()]);
+    [data, matches, battleDetails] = await Promise.all([loadData(), loadMatches(), loadBattleDetails()]);
   } catch (err) {
     app.innerHTML = `<div class="error-banner">データ読み込みエラー: ${err.message}</div>`;
     return;
@@ -42,7 +42,7 @@ async function boot() {
   }
 
   if (name) {
-    renderPlayerMatches(app, players, images, matches, name);
+    renderPlayerMatches(app, players, images, matches, battleDetails, name);
   } else {
     renderLeaderboard(app, players, images, matches);
   }
@@ -85,7 +85,7 @@ function renderLeaderboard(app, players, images, matches) {
   `;
 }
 
-function renderPlayerMatches(app, players, images, matches, name) {
+function renderPlayerMatches(app, players, images, matches, battleDetails, name) {
   const player = players.find(p => p.player_name === name);
   if (!player) {
     app.innerHTML = `<a class="back-link" href="matches.html">← 通算成績に戻る</a><div class="empty-note">選手が見つかりません</div>`;
@@ -95,10 +95,18 @@ function renderPlayerMatches(app, players, images, matches, name) {
   const rows = matches.filter(m => m.player_name === name).slice().sort((a, b) => a.round < b.round ? -1 : 1);
   const stats = summarizeMatches(matches, name);
 
-  const body = rows.map(r => `
+  // match_results.csv(公式サイト由来)とbattle_details.csv(svlabo.jp由来)は採番方式が別なので
+  // チーム対戦カード+選手名で突き合わせる（findBattleDetail()参照）。見つかれば「使用したが
+  // 登録していなかった他のクラス」も併せて表示し、配信の該当タイムスタンプへのリンクを出す。
+  // 見つからない場合（まだsvlabo.jpの記事が出ていない節など）は、これまで通り使用クラスの
+  // アイコン単体・配信リンク無しで表示する。
+  const body = rows.map(r => {
+    const detail = findBattleDetail(battleDetails, r.team_tag, r.player_name, r.opponent_team_tag);
+    const classCell = detail ? classPoolHTML(detail.pool, detail.used, 18) : `<span class="vs-cell">${classIconHTML(r.class)}</span>`;
+    return `
     <tr>
       <td>${r.round}</td>
-      <td><span class="vs-cell">${classIconHTML(r.class)}</span></td>
+      <td>${classCell}</td>
       <td>
         <span class="vs-cell">
           ${teamLogoHTML(r.opponent_team_tag, 18)}
@@ -107,7 +115,9 @@ function renderPlayerMatches(app, players, images, matches, name) {
         </span>
       </td>
       <td><span class="result-badge ${r.result === 'WIN' ? 'win' : 'lose'}">${r.result === 'WIN' ? '勝ち' : '負け'}</span></td>
-    </tr>`).join("");
+      <td>${detail && detail.video_url ? `<a href="${detail.video_url}" target="_blank" rel="noopener" style="font-size:12px;">配信</a>` : "-"}</td>
+    </tr>`;
+  }).join("");
 
   app.innerHTML = `
     <a class="back-link" href="matches.html">← 通算成績に戻る</a>
@@ -124,7 +134,7 @@ function renderPlayerMatches(app, players, images, matches, name) {
       <div class="quick-stat"><div class="label">獲得ポイント</div><div class="value">${fmtNum(stats.points)}</div></div>
     </div>
     <table class="rank-table">
-      <thead><tr><th>日時</th><th>使用クラス</th><th>対戦相手</th><th>結果</th></tr></thead>
+      <thead><tr><th>日時</th><th>使用クラス</th><th>対戦相手</th><th>結果</th><th>配信</th></tr></thead>
       <tbody>${body}</tbody>
     </table>
   `;
