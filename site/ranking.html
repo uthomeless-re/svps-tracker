@@ -28,18 +28,19 @@
 //    折れ線としては価値があるが、ランキングで過去の特定期間を指定して見るものではないため、
 //    ここでは常に最新値でランキングし、期間セレクトボックス自体を表示しない。
 // 2. 通常の期間指標（stream_duration, watch_time, video_view_count, video_upload_count など）は
-//    従来通り期間セレクトボックスで絞り込む。
-// 3. 仮想指標:
-//    - stream_duration_cumulative: 隔週の生値ではなく「これまでの合計配信時間」でランキングする。
-//      期間を指定する意味がないので期間セレクトボックスは出さない。
-//    - cr_topN_count: svlabo.jpのランクマッチ順位データ（data/svlabo_leaderboards.csv）から、
-//      「順位が指定しきい値(10/30/50/100)以内だった回数」でランキングする。期間ではなく
-//      しきい値を選ぶ専用のセレクトボックスに差し替える。
+//    期間セレクトボックスで絞り込む。期間の選択肢には、隔週ごとの期間に加えて「通算」も
+//    用意している（このセレクトボックスを選ぶと、その指標のこれまでの合計値でランキングする。
+//    以前は「累積配信時間」として配信時間専用の別指標に分けていたが、他の3つの期間指標
+//    （動画本数・動画再生回数・配信視聴時間）にも同じ「通算」の需要があるため、指標を
+//    増やすのではなく期間側に統合した）。
+// 3. cr_topN_count: svlabo.jpのランクマッチ順位データ（data/svlabo_leaderboards.csv）から、
+//    「順位が指定しきい値(10/30/50/100)以内だった回数」でランキングする。期間ではなく
+//    しきい値を選ぶ専用のセレクトボックスに差し替える。
 const CURRENT_METRICS = ["followers", "youtube_subscribers"];
 const EXCLUDED_PREFIXES = ["ps_win", "ps_point", "cr_"]; // PS戦績は対戦成績ページ(rounds.html)にまとまっているのでランキングには出さない、cr_*(生データ)はcr_topN_countに統合
+const CUMULATIVE_PERIOD_VALUE = "__cumulative__";
 
 function isCurrentMetric(m) { return CURRENT_METRICS.includes(m); }
-function isCumulativeMetric(m) { return m === "stream_duration_cumulative"; }
 function isCrMetric(m) { return m === "cr_topN_count"; }
 
 // フォロワー数/登録者数の行の右端に、その選手のX/YouTubeへのリンクを出すための対応表。
@@ -62,14 +63,11 @@ async function boot() {
   const periodicMetrics = [...new Set(history.map(r => r.metric))]
     .filter(m => !EXCLUDED_PREFIXES.some(p => m.startsWith(p)) && !isCurrentMetric(m))
     .sort((a, b) => a.localeCompare(b));
-  const hasStreamDuration = periodicMetrics.includes("stream_duration");
   const hasCrData = svlabo.length > 0;
 
   const currentOptions = CURRENT_METRICS.filter(m => history.some(r => r.metric === m))
     .map(m => `<option value="${m}">${metricLabel(m)}</option>`).join("");
   const periodicOptions = periodicMetrics.map(m => `<option value="${m}">${metricLabel(m)}</option>`).join("");
-  const cumulativeOptions = hasStreamDuration
-    ? `<option value="stream_duration_cumulative">${metricLabel("stream_duration_cumulative")}</option>` : "";
   const crOptions = hasCrData ? `<option value="cr_topN_count">CR順位 TOP N入り回数</option>` : "";
 
   app.innerHTML = `
@@ -79,7 +77,6 @@ async function boot() {
         <select id="rankMetricSelect">
           ${currentOptions ? `<optgroup label="現在値">${currentOptions}</optgroup>` : ""}
           ${periodicOptions ? `<optgroup label="期間ごとの指標">${periodicOptions}</optgroup>` : ""}
-          ${cumulativeOptions ? `<optgroup label="通算">${cumulativeOptions}</optgroup>` : ""}
           ${crOptions ? `<optgroup label="ランクマッチ(CR)">${crOptions}</optgroup>` : ""}
         </select>
       </div>
@@ -89,7 +86,15 @@ async function boot() {
       </div>
       <div class="control-group" id="thresholdGroup" style="display:none;">
         <label>しきい値</label>
-        <select id="rankThresholdSelect">${CR_TOPN_THRESHOLDS.map(t => `<option value="${t}">TOP${t}以内</option>`).join("")}</select>
+        <select id="rankThresholdSelect">
+          <optgroup label="クラスごとの順位">
+            ${CR_TOPN_THRESHOLDS.map(t => `<option value="${t}">TOP${t}以内</option>`).join("")}
+          </optgroup>
+          <optgroup label="全クラス合算の順位（BEYONDの「すべて」と同じ）">
+            <option value="all16">全クラス16位以内</option>
+            <option value="all100">全クラス100位以内</option>
+          </optgroup>
+        </select>
       </div>
     </div>
     <div id="rankTableWrap"></div>
@@ -101,22 +106,27 @@ async function boot() {
   const thresholdGroup = document.getElementById("thresholdGroup");
   const thresholdSelect = document.getElementById("rankThresholdSelect");
 
-  // player.htmlなど他ページから「?metric=stream_duration_cumulative」のようにリンクされた場合、
-  // その指標を最初から選択した状態で開けるようにする（該当する<option>が無ければ無視して既定値のまま）。
-  const requestedMetric = new URLSearchParams(location.search).get("metric");
+  // player.htmlなど他ページから「?metric=stream_duration&period=__cumulative__」のように
+  // リンクされた場合、その指標・期間を最初から選択した状態で開けるようにする
+  // （該当する<option>が無ければ無視して既定値のまま）。
+  const urlParams = new URLSearchParams(location.search);
+  const requestedMetric = urlParams.get("metric");
+  const requestedPeriod = urlParams.get("period");
   if (requestedMetric && [...metricSelect.options].some(o => o.value === requestedMetric)) {
     metricSelect.value = requestedMetric;
   }
 
   function refreshControls() {
     const metric = metricSelect.value;
-    const needsPeriod = !isCurrentMetric(metric) && !isCumulativeMetric(metric) && !isCrMetric(metric);
+    const needsPeriod = !isCurrentMetric(metric) && !isCrMetric(metric);
     periodGroup.style.display = needsPeriod ? "" : "none";
     thresholdGroup.style.display = isCrMetric(metric) ? "" : "none";
     if (needsPeriod) {
       const periods = [...new Set(history.filter(r => r.metric === metric).map(r => r.period))];
       periods.sort((a, b) => periodSortKey(a) - periodSortKey(b));
-      periodSelect.innerHTML = periods.map(p => `<option value="${p}">${periodLabel(p)}</option>`).join("");
+      // 個々の期間に加えて「通算」（レギュラーシーズン等を除いた実期間の合計値）も選べるようにする。
+      const periodOptions = periods.map(p => `<option value="${p}">${periodLabel(p)}</option>`).join("");
+      periodSelect.innerHTML = periodOptions + `<option value="${CUMULATIVE_PERIOD_VALUE}">通算</option>`;
       // デフォルトは「レギュラーシーズン」(通算集計)を選んだ状態にする。無ければ従来通り最新の隔週を選ぶ。
       if (periods.includes("regular_season")) periodSelect.value = "regular_season";
       else if (periods.length) periodSelect.value = periods[periods.length - 1];
@@ -130,21 +140,35 @@ async function boot() {
     const valueByPlayer = {};
 
     if (isCrMetric(metric)) {
-      const threshold = parseInt(thresholdSelect.value, 10);
-      headerLabel = crTopNLabel(threshold);
+      const rawThreshold = thresholdSelect.value;
       lowerBetter = false;
-      const counts = crTopNCounts(svlabo, threshold);
+      let counts;
+      if (rawThreshold.startsWith("all")) {
+        // 「全クラス合算」＝BEYONDページの「すべて」クラスと同じ、期間ごとに各選手の
+        // 最高レート（クラス問わず）で並べ直した順位を使う（svlaboの生rank列＝クラスごとの
+        // 順位とは別物）。
+        const threshold = parseInt(rawThreshold.slice(3), 10);
+        headerLabel = crAllClassTopNLabel(threshold);
+        counts = crAllClassTopNCounts(svlabo, threshold);
+      } else {
+        const threshold = parseInt(rawThreshold, 10);
+        headerLabel = crTopNLabel(threshold);
+        counts = crTopNCounts(svlabo, threshold);
+      }
       players.forEach(p => { valueByPlayer[p.player_name] = crCountForPlayer(counts, p); });
-    } else if (isCumulativeMetric(metric)) {
-      lowerBetter = false;
-      players.forEach(p => {
-        const { data: series } = buildCumulativeSeries(history, p.player_name, "stream_duration");
-        if (series.length) valueByPlayer[p.player_name] = series[series.length - 1];
-      });
     } else if (isCurrentMetric(metric)) {
       players.forEach(p => {
         const v = latestValue(history, p.player_name, metric);
         if (v != null) valueByPlayer[p.player_name] = v;
+      });
+    } else if (periodSelect.value === CUMULATIVE_PERIOD_VALUE) {
+      // 「通算」: レギュラーシーズン等の集計済みperiodを除いた実期間だけを合計する
+      // （buildCumulativeSeries()自体が汎用的なので、配信時間以外の期間指標にもそのまま使える）。
+      headerLabel = "通算" + metricLabel(metric);
+      lowerBetter = false;
+      players.forEach(p => {
+        const { data: series } = buildCumulativeSeries(history, p.player_name, metric);
+        if (series.length) valueByPlayer[p.player_name] = series[series.length - 1];
       });
     } else {
       const period = periodSelect.value;
@@ -222,6 +246,10 @@ async function boot() {
   thresholdSelect.addEventListener("change", drawTable);
 
   refreshControls();
+  // refreshControls()が期間の<option>を組み立てた後でないと反映できないので、ここで上書きする。
+  if (requestedPeriod && [...periodSelect.options].some(o => o.value === requestedPeriod)) {
+    periodSelect.value = requestedPeriod;
+  }
   drawTable();
 }
 

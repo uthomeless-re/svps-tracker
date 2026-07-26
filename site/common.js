@@ -86,8 +86,6 @@ const METRIC_LABELS = {
   watch_time: "配信視聴時間 (h)",
   video_view_count: "動画再生回数",
   video_upload_count: "動画本数",
-  cr_best_rank_overall: "ランクマッチ最高順位（全クラス）",
-  cr_top100_count: "ランクマッチ TOP100入り回数",
 };
 
 function metricLabel(m) {
@@ -294,6 +292,36 @@ function crTopNCounts(leaderboard, threshold) {
   return counts;
 }
 
+// crTopNCounts()は「クラスごとの生のrank列」を見ているが、こちらは各期間について
+// 選手ごとの最高レート（クラス問わず、beyond.htmlの「全クラス合算」と同じ考え方）で
+// 並べ直してから順位を振り、その順位がthreshold位以内だった回数を数える
+// （＝「全クラス合算で見た時に何回入賞級だったか」を表す回数ランキング）。
+// 表示件数を絞るbeyond.html側とは違い、ここでは母集団を絞らずに全員分の順位を振ってから数える
+// （TOP100の回数を数えたいのに母集団を100人に絞ると、同着の関係で取りこぼす恐れがあるため）。
+function crAllClassTopNCounts(leaderboard, threshold) {
+  const counts = {};
+  const byPeriod = {};
+  leaderboard.forEach(r => {
+    if (!byPeriod[r.period]) byPeriod[r.period] = {};
+    const key = r.team_tag + "|" + r.player_name;
+    const rating = parseFloat(r.rating) || 0;
+    if (!byPeriod[r.period][key] || rating > byPeriod[r.period][key].rating) {
+      byPeriod[r.period][key] = { player_name: r.player_name, rating };
+    }
+  });
+  Object.values(byPeriod).forEach(byKey => {
+    const list = Object.values(byKey).sort((a, b) => b.rating - a.rating);
+    assignCompetitionRanks(list, x => x.rating);
+    list.forEach(x => {
+      if (x.rank <= threshold) {
+        const key = normalizeName(x.player_name);
+        counts[key] = (counts[key] || 0) + 1;
+      }
+    });
+  });
+  return counts;
+}
+
 // players.csv側の選手オブジェクトから、crTopNCounts()の結果を引く。
 // NAME_ALIASESに登録があればそちらを優先し、無ければ本人の名前をそのまま
 // 正規化して引く（全角/半角スペース・大文字小文字のゆれは自動で吸収される）。
@@ -304,6 +332,10 @@ function crCountForPlayer(counts, player) {
 
 function crTopNLabel(threshold) {
   return `CR順位 TOP${threshold}入り回数`;
+}
+
+function crAllClassTopNLabel(threshold) {
+  return `全クラス${threshold}位以内 回数`;
 }
 
 // players.csv側の選手を「正規化した名前 → 選手オブジェクト」の辞書にしておく。
