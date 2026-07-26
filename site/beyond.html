@@ -150,9 +150,10 @@ function renderRatingTab(container, svlaboPeriods, classes, teams) {
 
     const tableWrap = container.querySelector("#tableWrap");
 
-    // 検索中は期間・クラスの絞り込みを無視して全期間×全クラス横断で検索結果を出す
-    // （特定の選手を探したいだけなのに期間とクラスを両方合わせないと見つからないのは不便なため）。
-    if (filters.query.trim()) {
+    // 選手検索、またはチームを絞り込んでいる時は、期間・クラスの絞り込みを無視して
+    // 全期間×全クラス横断で結果を出す（1つの期間×クラスだけを見ても、そのチームの選手が
+    // たまたま出ていないと空っぽになってしまい役に立たないため。特定の選手を探す時と同じ考え方）。
+    if (filters.query.trim() || filters.team) {
       renderSearchResults(tableWrap);
       return;
     }
