@@ -57,6 +57,20 @@ main { max-width: 980px; margin: 0 auto; padding: 24px; }
 .players-grid {
   display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 12px;
 }
+
+/* チーム一覧（アコーディオン） */
+.team-block { border: 1px solid var(--border); border-radius: 12px; margin-bottom: 10px; overflow: hidden; }
+.team-block summary {
+  cursor: pointer; padding: 14px 16px; display: flex; align-items: center; gap: 12px;
+  list-style: none; background: #fff;
+}
+.team-block summary::-webkit-details-marker { display: none; }
+.team-block summary .chevron { transition: transform .15s ease; color: var(--text-muted); font-size: 12px; }
+.team-block[open] summary .chevron { transform: rotate(180deg); }
+.team-block summary .team-rank { font-weight: 700; color: var(--text-muted); width: 22px; }
+.team-block summary .team-title { font-weight: 600; font-size: 15px; flex: 1; }
+.team-block summary .team-points { font-size: 12px; color: var(--text-muted); }
+.team-panel { padding: 14px 16px; border-top: 1px solid var(--border); }
 .player-card {
   border: 1px solid var(--border); border-radius: 14px; padding: 14px 16px; cursor: pointer;
   transition: box-shadow .15s ease, transform .15s ease, border-color .15s ease;

@@ -135,3 +135,28 @@ function summarizeMatches(matches, playerName) {
   const points = rows.reduce((sum, r) => sum + (parseFloat(r.point) || 0), 0);
   return { played: rows.length, wins, losses, points, winRate: rows.length ? wins / rows.length : null };
 }
+
+// 8チームを「現在の順位」で並べる。順位は各選手の獲得ポイント（match_results.csvのpoint合計）を
+// チーム単位で合算したもの。公式サイトの各節の対戦カードに出る点数（例: Crazy Raccoon 3-1 ZETA）は
+// その節の個人戦ポイントの合計と一致するため、通算獲得ポイントの合計はチーム成績の近似として妥当。
+// まだ試合が無い場合はplayers.csv記載順のまま返す。
+function computeTeamStandings(players, matches) {
+  const teams = {};
+  players.forEach(p => {
+    if (!teams[p.team_tag]) teams[p.team_tag] = { team_tag: p.team_tag, team_name: p.team_name, players: [], points: 0, wins: 0, losses: 0 };
+    teams[p.team_tag].players.push(p);
+  });
+  matches.forEach(m => {
+    const t = teams[m.team_tag];
+    if (!t) return;
+    t.points += parseFloat(m.point) || 0;
+    if (m.result === "WIN") t.wins++;
+    else if (m.result === "LOSE") t.losses++;
+  });
+  const list = Object.values(teams);
+  const hasMatches = matches.length > 0;
+  if (hasMatches) {
+    list.sort((a, b) => b.points - a.points);
+  }
+  return list;
+}

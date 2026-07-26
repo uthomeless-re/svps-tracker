@@ -21,39 +21,58 @@
 
 <script src="common.js"></script>
 <script>
+function playerCardHTML(p, history, images) {
+  const followers = latestValue(history, p.player_name, "followers");
+  const yt = latestValue(history, p.player_name, "youtube_subscribers");
+  return `
+    <a class="player-card" href="player.html?name=${encodeURIComponent(p.player_name)}">
+      <div class="photo-row">
+        ${avatarHTML(p, images, 44)}
+        <div>
+          <div class="name">${p.player_name}</div>
+          ${teamBadgeHTML(p.team_tag)}
+        </div>
+      </div>
+      <div class="stats">
+        <div>Xフォロワー: <b>${followers != null ? fmtNum(followers) : "-"}</b></div>
+        <div>YouTube登録者: <b>${yt != null ? fmtNum(yt) : "-"}</b></div>
+      </div>
+    </a>`;
+}
+
 async function boot() {
   const app = document.getElementById("app");
-  let data;
+  let data, matches;
   try {
-    data = await loadData();
+    [data, matches] = await Promise.all([loadData(), loadMatches()]);
   } catch (err) {
     app.innerHTML = `<div class="error-banner">データ読み込みエラー: ${err.message}（まだ一度もデータ更新が走っていない可能性があります）</div>`;
     return;
   }
 
   const { players, history, images } = data;
+  const standings = computeTeamStandings(players, matches);
+  const hasMatches = matches.length > 0;
 
-  const cards = players.map(p => {
-    const followers = latestValue(history, p.player_name, "followers");
-    const yt = latestValue(history, p.player_name, "youtube_subscribers");
+  const blocks = standings.map((team, i) => {
+    const cards = team.players.map(p => playerCardHTML(p, history, images)).join("");
+    const pointsLabel = hasMatches ? `${fmtNum(team.points)}pt（${team.wins}勝${team.losses}敗）` : "試合結果はまだありません";
     return `
-      <a class="player-card" href="player.html?name=${encodeURIComponent(p.player_name)}">
-        <div class="photo-row">
-          ${avatarHTML(p, images, 44)}
-          <div>
-            <div class="name">${p.player_name}</div>
-            ${teamBadgeHTML(p.team_tag)}
-          </div>
+      <details class="team-block" ${i === 0 && hasMatches ? "open" : ""}>
+        <summary>
+          <span class="team-rank">${hasMatches ? i + 1 : "-"}</span>
+          ${teamBadgeHTML(team.team_tag)}
+          <span class="team-title">${team.team_name}</span>
+          <span class="team-points">${pointsLabel}</span>
+          <span class="chevron">▼</span>
+        </summary>
+        <div class="team-panel">
+          <div class="players-grid">${cards}</div>
         </div>
-        <div class="team-name">${p.team_name}</div>
-        <div class="stats">
-          <div>Xフォロワー: <b>${followers != null ? fmtNum(followers) : "-"}</b></div>
-          <div>YouTube登録者: <b>${yt != null ? fmtNum(yt) : "-"}</b></div>
-        </div>
-      </a>`;
+      </details>`;
   }).join("");
 
-  app.innerHTML = `<div class="players-grid">${cards}</div>`;
+  app.innerHTML = blocks;
 }
 
 boot();
