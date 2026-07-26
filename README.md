@@ -1,178 +1,209 @@
-# Shadowverse Premier Series 26-27 選手データトラッカー
+"""当日分の data/snapshots/*.json を読み込み、ロング形式の data/history.csv に正規化して追記する。
 
-Xフォロワー数・YouTube登録者数・配信時間・視聴時間・動画本数・PS戦績を毎日自動取得し、
-GitHub Pagesで折れ線グラフとして公開するためのリポジトリ一式です（`site/index.html` がChart.jsで
-history.csvを読み込んで折れ線グラフを描画する部分で、単にデータを溜めるだけでなく表示まで一体になっています）。
+history.csv のスキーマ:
+    date, team_tag, player_name, metric, period, value
 
-ランクマッチ最高順位（svlabo.jp由来）は自動取得から外し、手動運用にしています
-（理由は「なぜsvlabo.jpだけ手動にしたか」を参照）。
+metric一覧:
+    followers            : Xフォロワー数（shadowverse-reference.com, periodは"current"）
+    stream_duration       : 配信時間[h]（shadowverse-reference.com, periodは隔週キー）
+    watch_time            : 視聴時間[h]（同上）
+    video_view_count      : 再生回数（同上）
+    video_upload_count    : 動画本数（同上）
+    cr_rank_{class}       : クラス別ランクマッチ最高順位（svlabo.jp, periodは隔週シーズン名）
+    cr_rating_{class}     : クラス別ランクマッチ最高レート（同上）
+    cr_best_rank_overall  : 全クラス通算の最高順位（svlabo.jp, periodは"cumulative_to_date"）
+    cr_top100_count       : 順位100位以内に入った回数（同上）
+    ps_win                : PS公式戦での勝敗（1=勝ち/0=負け、periodは節・ラウンドのラベル）
+    ps_point              : PS公式戦で獲得したポイント（同上）
+    youtube_subscribers    : YouTubeチャンネル登録者数（各選手のYouTubeチャンネル, periodは"current"）
 
-## 構成
+同じ(date, team_tag, player_name, metric, period)の組み合わせが既に存在する場合は上書きする
+（1日に複数回スクリプトを実行しても重複行にならないようにするため）。
+"""
+import csv
+import glob
+import json
+import os
+import sys
 
-```
-svps-tracker/
-├── .github/workflows/daily-update.yml   毎日実行されるGitHub Actions
-├── scripts/
-│   ├── common.py            共通処理（選手マスタ読み込み、CSV書き出しなど）
-│   ├── scrape_reference.py  shadowverse-reference.com から フォロワー数・配信関連 を取得（毎日自動）
-│   ├── scrape_ps_results.py ps.shadowverse-wb.com から PS戦績（個人） を取得（毎日自動）
-│   ├── scrape_youtube.py    各選手のYouTubeチャンネルページから 登録者数 を取得（毎日自動）
-│   ├── scrape_svlabo.py     svlabo.jp から ランクマッチ最高順位・レート を取得（★自動実行からは除外。手動で使う用に残してあるだけ）
-│   ├── update_history.py    上記のスナップショットを data/history.csv に統合
-│   └── requirements.txt
-├── data/
-│   ├── players.csv          選手マスタ（8チーム37名。youtube_url/twitch_urlはshadowverse-reference.com
-│   │                         から取り直して統一済み。詳細は「players.csvについて」参照）
-│   ├── history.csv          蓄積される日次データ（ロング形式）
-│   ├── svlabo_leaderboards.csv  svlabo.jpの全ユーザー分を一括取得した手動作業の成果物
-│   │                             （period, class, rank, team_tag, player_name, rating の列。history.csvとは別管理・自動更新はされない）
-│   └── snapshots/           日次の生スクレイピング結果（デバッグ用、実行のたびに増える）
-└── site/
-    └── index.html           表示用ページ（Chart.js、個人別/チーム別・指標切替）
-```
+from common import DATA_DIR, SNAPSHOT_DIR, HISTORY_CSV, today_str, load_players, build_name_index, normalize_name
 
-## セットアップ手順
+FIELDNAMES = ["date", "team_tag", "player_name", "metric", "period", "value"]
 
-1. このフォルダの中身を、あなたのGitHubリポジトリのルートにそのままコピーしてpushする
-2. リポジトリの Settings → Pages → Source を「GitHub Actions」に設定する
-3. Actionsタブで `Daily stats update` を一度 `Run workflow`（手動実行）して、正常に動くか確認する
-4. 以降は毎日 22:00 JST に自動実行される（`.github/workflows/daily-update.yml` の cron で変更可能）
-5. 公開URLは `https://<ユーザー名>.github.io/<リポジトリ名>/` になる
 
-認証について: pushやPages公開は GitHub Actions が自動発行する `GITHUB_TOKEN` を使うので、
-リポジトリのSecretsなどにあなた自身のトークンを登録する必要はありません
-（workflow内の `permissions: contents: write / pages: write / id-token: write` だけで完結します）。
-ただし、YouTube登録者数を1万人超でも端数まで正確に取得したい場合だけ、別途YouTube Data APIキーが
-必要です（後述の「YouTube Data APIキーの取得方法」参照）。このキーはあなた自身がGoogleで発行し、
-GitHubリポジトリのSecretsに直接登録するものなので、Claude側やこのチャット上でキーを
-やり取りすることはありません。キーを登録しなくても`scrape_youtube.py`は動作しますが、その場合は
-チャンネルページのスクレイピングにフォールバックするため、1万人超のチャンネルは概算値になります
-（詳細は「YouTube Data APIキーの取得方法」末尾およびYouTube登録者数の既知の制約を参照）。
+def latest_snapshot(source: str, date_str: str):
+    path = os.path.join(SNAPSHOT_DIR, f"{source}_{date_str}.json")
+    if not os.path.exists(path):
+        return None
+    with open(path, encoding="utf-8") as f:
+        return json.load(f)
 
-## YouTube Data APIキーの取得方法
 
-登録者数を1万人未満まで含めて正確な数字で取得するため、YouTubeチャンネルページの
-スクレイピングではなく公式のYouTube Data API v3を使っています。無料枠（1日10,000ユニット）
-の範囲内で十分足ります（このリポジトリの規模なら1日1ユニットも使いません）。
+def rows_from_reference(snapshot, name_index):
+    rows = []
+    for r in snapshot or []:
+        norm = normalize_name(r["player_name"])
+        player = name_index.get(norm)
+        team_tag = player["team_tag"] if player else r["team_tag"]
+        rows.append(
+            {
+                "date": r["date"],
+                "team_tag": team_tag,
+                "player_name": player["player_name"] if player else r["player_name"],
+                "metric": r["metric"],
+                "period": r["period"],
+                "value": r["value"],
+            }
+        )
+    return rows
 
-1. https://console.cloud.google.com/ にアクセスし、適当な名前で新しいプロジェクトを作成する
-2. 「APIとサービス」→「ライブラリ」で「YouTube Data API v3」を検索し、有効にする
-3. 「APIとサービス」→「認証情報」→「認証情報を作成」→「APIキー」でキーを発行する
-   （必要なら「APIの制限」で YouTube Data API v3 のみに絞っておくと安全）
-4. あなたのGitHubリポジトリの Settings → Secrets and variables → Actions →
-   「New repository secret」で、Name: `YOUTUBE_API_KEY` / Secret: 発行したキー を登録する
-5. これで `daily-update.yml` の `scrape_youtube.py` ステップが自動的にこのSecretを読み込みます
 
-このキーを設定していない場合や、キーが無効・クォータ超過などでAPI呼び出しそのものが失敗した場合は、
-`scrape_youtube.py` は自動的に旧来のチャンネルページスクレイピング方式にフォールバックします
-（エラーにはならず、登録者数の取得自体がスキップされることはありません）。ただしフォールバック時は
-登録者数が概ね1万人を超えるチャンネル（12チャンネル）はYouTube側の表示自体が「1.35万人」のように
-丸められるため、端数までの正確な数字は取れません。端数まで必要な場合はAPIキーの設定が必須です。
-その日どちらの方式で取得されたかは `data/snapshots/youtube_*.json`（history.csv取り込み前の
-生データ）の各行の `via`（"api" または "scrape"）フィールドで確認できます。
+def rows_from_svlabo(snapshot):
+    rows = []
+    for r in snapshot or []:
+        if not r.get("matched_player"):
+            continue  # players.csvにいない選手はスキップ（無関係選手のノイズを避ける）
+        team_tag = r["team_tag"]
+        name = r["matched_player"]
+        date = r["date"]
 
-## なぜGitHub Actions方式にしたか
+        rows.append(
+            {
+                "date": date,
+                "team_tag": team_tag,
+                "player_name": name,
+                "metric": "cr_best_rank_overall",
+                "period": "cumulative_to_date",
+                "value": r["best_rank_overall"],
+            }
+        )
+        rows.append(
+            {
+                "date": date,
+                "team_tag": team_tag,
+                "player_name": name,
+                "metric": "cr_top100_count",
+                "period": "cumulative_to_date",
+                "value": r["top100_count"],
+            }
+        )
+        for b in r.get("breakdown", []):
+            rows.append(
+                {
+                    "date": date,
+                    "team_tag": team_tag,
+                    "player_name": name,
+                    "metric": f"cr_rank_{b['class']}",
+                    "period": b["period"],
+                    "value": b["rank"],
+                }
+            )
+            rows.append(
+                {
+                    "date": date,
+                    "team_tag": team_tag,
+                    "player_name": name,
+                    "metric": f"cr_rating_{b['class']}",
+                    "period": b["period"],
+                    "value": b["rating"],
+                }
+            )
+    return rows
 
-Cowork（Claude）側のスケジュール機能で毎日実行することも技術的には可能ですが、その場合
-「GitHubに公開する」ためには結局GitHubへのpush用トークンをClaude側の実行環境に渡す必要があります。
-認証情報をチャット上でやり取りしたり、外部の実行環境に持たせたりするのは避けたい方式のため、
-スクレイピング〜データ更新〜コミット〜Pages公開まで**すべてGitHubのインフラ内で完結する**
-GitHub Actions方式を採用しています。Claude側では初期セットアップ（このリポジトリ一式の作成）だけを行いました。
 
-## なぜsvlabo.jpだけ手動にしたか
+def rows_from_youtube(snapshot):
+    rows = []
+    for r in snapshot or []:
+        rows.append(
+            {
+                "date": r["date"],
+                "team_tag": r["team_tag"],
+                "player_name": r["player_name"],
+                "metric": "youtube_subscribers",
+                "period": "current",
+                "value": r["value"],
+            }
+        )
+    return rows
 
-svlabo.jp（ランクマッチ最高順位）は当初、毎日自動取得→毎月1日のみ自動取得、と段階的に
-自動化しようとしていましたが、以下の理由で完全に自動化対象から外し、手動運用に変更しました。
 
-- 元々ランクマッチの最高順位は月1回程度しか動かないデータで、頻繁な自動更新の必要性が薄い
-- 3サイトの中で唯一FC2側のボット検知に引っかかり、User-Agent偽装等の対策が必要だった
-  （個人運営のFC2ブログなので、今後も同様の検知強化が入るリスクがある）
-- テーブルの区切り文字（タブか改行か）が実際に動かすまで分からず、他の2サイトより
-  デバッグに時間がかかった
-- 取得したデータをそのまま使うのではなく手元で加工したい、という利用イメージだったため、
-  自動でhistory.csvに混ぜ込む設計自体が過剰だった
+def rows_from_ps_results(snapshot, name_index):
+    rows = []
+    for r in snapshot or []:
+        norm = normalize_name(r["player_name"])
+        player = name_index.get(norm)
+        team_tag = player["team_tag"] if player else "?"
+        name = player["player_name"] if player else r["player_name"]
+        rows.append(
+            {
+                "date": r["date"],
+                "team_tag": team_tag,
+                "player_name": name,
+                "metric": "ps_win",
+                "period": r["round"],
+                "value": 1 if r["result"] == "WIN" else 0,
+            }
+        )
+        rows.append(
+            {
+                "date": r["date"],
+                "team_tag": team_tag,
+                "player_name": name,
+                "metric": "ps_point",
+                "period": r["round"],
+                "value": r["point"],
+            }
+        )
+    return rows
 
-`scripts/scrape_svlabo.py` 自体は動作する状態で残してあります。使いたくなったら
-`cd scripts && python scrape_svlabo.py && python update_history.py` を手元やActionsの
-手動実行で叩けば、今まで通り `data/history.csv` に取り込めます。使わないなら
-`scripts/scrape_svlabo.py` を削除しても他のスクリプトには影響しません。
 
-## 既知の制約・注意点
+def load_existing_history():
+    if not os.path.exists(HISTORY_CSV):
+        return []
+    with open(HISTORY_CSV, encoding="utf-8", newline="") as f:
+        return list(csv.DictReader(f))
 
-- **shadowverse-reference.comは非公式のファンサイトです**（ps.shadowverse-wb.comは公式サイト）。
-  仕様変更やサイト停止のリスクは常にあります。各スクリプトは失敗しても他のスクリプトの実行を
-  妨げないように `continue-on-error: true` にしていますが、パースが崩れた場合は
-  `data/snapshots/*_debug*.json` や `*_raw*.json` を見て正規表現/パーサーを調整してください。
-  （各スクリプトは失敗時もこのデバッグ用の生テキストを必ず保存し、ログにも直接出力するようにしています）
-- **shadowverse-reference.com**: Xフォロワー数は「現在値」のみが取得できます（このサイト自体に
-  過去の履歴はない）。そのため、フォロワー数の推移グラフは このスクリプトを動かし始めた日から
-  蓄積されていきます。配信時間・視聴時間・再生回数・動画本数は隔週の期間集計を過去分までさかのぼって
-  取得できます。なお実データ確認の結果、各行の順位・選手名の後ろに単独のタブ文字だけの行が
-  挟まっていたため、パース前にタブ文字を除去する処理を入れています。
-- **ps.shadowverse-wb.com（PS戦績）**: 「試合結果詳細」モーダルは実際にGitHub Actions上で
-  取得した生テキストを元に、「BATTLE Nトークンの前後を選手名/クラス/勝敗/獲得ポイントとして
-  読み取る」ロジックに書き換え済みです（`parse_battles()`）。「チームバトル」という
-  個人に紐づかない対戦枠は成績から除外しています。
-- **YouTube登録者数（scrape_youtube.py）**: メインはYouTube Data API（`channels.list`）による
-  取得で、`YOUTUBE_API_KEY`が設定されていれば端数まで正確な登録者数が取れます。APIキーの
-  取得方法は上記「YouTube Data APIキーの取得方法」を参照してください。
-  キーが未設定の場合、またはAPI呼び出し自体が失敗した場合（キー無効・クォータ超過など）は、
-  自動的にチャンネルページ（/about）のHTMLをスクレイピングする旧方式にフォールバックします。
-  37チャンネル全部を実際に確認したところ、この旧方式では登録者数が概ね1万人を超えるチャンネル
-  （12チャンネル）はYouTube側の表示自体が「1.35万人」のように丸められてしまい、端数まで
-  取得できません（これがそもそもAPI方式に切り替えた理由です）。端数まで必要なチャンネルが
-  含まれる場合は、APIキーの設定を推奨します。
-  Chappyのみ、shadowverse-reference.com上でもYouTubeチャンネルが確認できず（Twitchのみで
-  配信）、両方式とも対象外になります。
-  このサイト自体には登録者数の推移データはなく「現在値」しか取れないため、Xフォロワー数と同様、
-  このスクリプトを動かし始めた日からhistory.csvに蓄積されていきます。
-- **Twitchのフォロワー数は今のところ自動取得していません**: 37名中8名
-  （ねぎま、glory、Toby、もっちゃま、ぱらちゃん、折り紙、Chappy、Stylish_deko）は
-  Twitchでも配信しており、players.csvにtwitch_url列として保持していますが、フォロワー数の
-  自動取得はまだ実装していません。理由は2つあります。
-  1. Twitchの公式Helix APIでフォロワー数を取得する`Get Channel Followers`エンドポイントは、
-     配信者本人（またはそのモデレーター）のOAuthトークンでのアクセスしか許可されておらず、
-     アプリ側の資格情報だけでは他人のチャンネルのフォロワー数を取得できない仕様になっている
-     （2023年のAPI変更以降）。
-  2. 非公式のGraphQL API（`gql.twitch.tv`）経由で取得する方法も試したが、フォロワー数を含む
-     クエリの正しいpersisted queryハッシュ値を特定できなかった（Twitchの公式Webクライアントの
-     内部実装に依存しており、頻繁に変わる可能性が高く、svlabo.jpよりもさらに壊れやすい）。
-  もしTwitchのフォロワー数も追跡したい場合は、8名それぞれに自分のチャンネルでこのツール用の
-  アプリを認可してもらう（現実的に厳しい）か、GraphQLの正しいクエリを別途調査する必要がある。
-- **開発環境での制約**: このリポジトリのコードは、Claudeの実行サンドボックス環境ではネットワーク制限により
-  Playwrightのブラウザバイナリをダウンロードできず、実際にブラウザを起動しての動作確認はできません。
-  そのため、GitHub Actions上で実際に取得された生ログ（タイムスタンプ付きログファイル）を
-  ダウンロードして送ってもらい、そのテキストに対してパース処理を書いて検証する、というやり方で
-  デバッグしています。今後もエラーが出た場合は、Actionsの実行結果ページ右上の「...」から
-  「Download log archive」でログ一式をダウンロードし、このチャットに添付してもらえれば
-  同じ方法で調査できます。
 
-## players.csvについて
+def merge(existing_rows, new_rows):
+    key = lambda r: (r["date"], r["team_tag"], r["player_name"], r["metric"], r["period"])
+    merged = {key(r): r for r in existing_rows}
+    for r in new_rows:
+        merged[key(r)] = {k: str(r[k]) for k in FIELDNAMES}
+    # 日付→選手→指標の順で安定ソート
+    return sorted(merged.values(), key=lambda r: (r["date"], r["team_tag"], r["player_name"], r["metric"], r["period"]))
 
-もともとのplayers.csvは`2026ps-fixed/data/teams.json`（初期にいただいたファイル）から
-抽出したものでしたが、そこに入っていたyoutube_urlは古い/一部欠落している状態でした
-（Mishadow51, monakawan, 山田レクイエム, Stylish_dekoの4名は本来YouTubeチャンネルを
-持っているのに空欄になっていた）。
 
-現在のplayers.csvは、実際に配信活動状況をshadowverse-reference.comで全選手分確認し直し、
-そこで使われているYouTubeチャンネルID（`/channel/UCxxxx`形式）に統一しています。
-併せてtwitch_url列を新設し、Twitchでも配信している8名（ねぎま、glory、Toby、もっちゃま、
-ぱらちゃん、折り紙、Chappy、Stylish_deko）のTwitch URLも入れてあります（Chappyのみ
-YouTubeを持たずTwitchのみ）。
+def main():
+    date_str = today_str()
+    players = load_players()
+    name_index = build_name_index(players)
 
-## history.csv のスキーマ
+    reference_snap = latest_snapshot("reference", date_str)
+    svlabo_snap = latest_snapshot("svlabo", date_str)
+    ps_snap = latest_snapshot("ps_results", date_str)
+    youtube_snap = latest_snapshot("youtube", date_str)
 
-| 列 | 内容 |
-|---|---|
-| date | 取得日（JST） |
-| team_tag | チーム略称（CR/ZETA/DFM/VRL/MRG/RC/RDL/LVH） |
-| player_name | 選手名（players.csv基準） |
-| metric | 指標名（followers, youtube_subscribers, stream_duration, ps_win など。svlabo.jpを手動で取り込んだ場合は cr_rank_エルフ 等も入る） |
-| period | 期間キー（current, jul_early_2026, cumulative_to_date, 節ラベルなど） |
-| value | 数値 |
+    new_rows = []
+    new_rows += rows_from_reference(reference_snap, name_index)
+    new_rows += rows_from_svlabo(svlabo_snap)
+    new_rows += rows_from_ps_results(ps_snap, name_index)
+    new_rows += rows_from_youtube(youtube_snap)
 
-## 次にやると良さそうなこと
+    print(f"[update_history] {len(new_rows)} new rows from today's snapshots")
+    if not new_rows:
+        print("[update_history] nothing to merge (no snapshots found for today)", file=sys.stderr)
 
-- 過去分のバックフィル（shadowverse-reference.comの隔週データは4月前半まで遡れるので、
-  初回だけ手動でperiodループを回して過去分を先に埋めておくと、公開初日からグラフに厚みが出る）
-- PS戦績のクラス別勝率など、history.csvを使った追加集計ページ
+    existing = load_existing_history()
+    merged = merge(existing, new_rows)
+
+    os.makedirs(DATA_DIR, exist_ok=True)
+    with open(HISTORY_CSV, "w", encoding="utf-8", newline="") as f:
+        writer = csv.DictWriter(f, fieldnames=FIELDNAMES)
+        writer.writeheader()
+        writer.writerows(merged)
+
+    print(f"[update_history] history.csv now has {len(merged)} rows")
+
+
+if __name__ == "__main__":
+    main()

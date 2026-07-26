@@ -1,0 +1,1 @@
+[{"rank": "1", "team_tag": "RC", "player_name": "ぱらちゃん", "value": 34703, "unit": "人", "metric": "followers", "period": "current", "date": "2026-07-26", "source": "x"}, {"rank": "1", "team_tag": "MRG", "player_name": "もっちゃま", "value": 82.5, "unit": "時間", "metric": "stream_duration", "period": "jul_early_2026", "date": "2026-07-26", "source": "x"}]
