@@ -55,15 +55,19 @@ function drawCompareChart() {
   });
   const labels = [...allLabelsSet].sort();
 
-  const datasets = names.map((name, i) => {
+  const datasets = names.map((name) => {
     const s = seriesByName[name];
     const byLabel = {};
     s.labels.forEach((l, idx) => byLabel[l] = s.data[idx]);
+    // 選手ごとにバラバラの色を割り当てるのではなく、同じチームの選手は同じ色にする
+    // （「チームごとに折れ線の色は変える」という要望に対応。個々の系列名はツールチップ/凡例で区別できる）。
+    const player = players.find(p => p.player_name === name);
+    const color = (player && TEAM_COLORS[player.team_tag]) || "#888";
     return {
       label: name,
       data: labels.map(l => byLabel[l] ?? null),
-      borderColor: SERIES_COLORS[i % SERIES_COLORS.length],
-      backgroundColor: SERIES_COLORS[i % SERIES_COLORS.length],
+      borderColor: color,
+      backgroundColor: color,
       spanGaps: true,
       tension: 0.25,
       pointRadius: 2,
@@ -168,12 +172,28 @@ async function boot() {
     </div>
     <div class="control-group" style="margin-bottom:16px;">
       <label>選手を個別に選択（クリックで追加/解除）</label>
+      <div class="team-select-row" style="margin-bottom:6px;">
+        <button class="team-select-btn" id="selectAllBtn">全選択</button>
+        <button class="team-select-btn" id="deselectAllBtn">全解除</button>
+      </div>
       <div class="player-chip-list" id="playerChips"></div>
     </div>
     <div class="chart-box" id="chartWrap"></div>
   `;
 
+  // 初期表示は「今選ばれている指標を全選手分比較した状態」にする（選ぶ手間を無くす）。
+  // 多すぎて見づらい場合は下の「全解除」ボタンで一旦クリアできる。
+  players.forEach(p => selected.add(p.player_name));
+
   document.getElementById("metricSelect").addEventListener("change", drawCompareChart);
+  document.getElementById("selectAllBtn").addEventListener("click", () => {
+    players.forEach(p => selected.add(p.player_name));
+    renderChips(); renderTeamButtons(); drawCompareChart();
+  });
+  document.getElementById("deselectAllBtn").addEventListener("click", () => {
+    selected.clear();
+    renderChips(); renderTeamButtons(); drawCompareChart();
+  });
   renderTeamButtons();
   renderChips();
   drawCompareChart();
