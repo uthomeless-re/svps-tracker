@@ -115,7 +115,9 @@ async function boot() {
       const periods = [...new Set(history.filter(r => r.metric === metric).map(r => r.period))];
       periods.sort((a, b) => periodSortKey(a) - periodSortKey(b));
       periodSelect.innerHTML = periods.map(p => `<option value="${p}">${periodLabel(p)}</option>`).join("");
-      if (periods.length) periodSelect.value = periods[periods.length - 1];
+      // デフォルトは「レギュラーシーズン」(通算集計)を選んだ状態にする。無ければ従来通り最新の隔週を選ぶ。
+      if (periods.includes("regular_season")) periodSelect.value = "regular_season";
+      else if (periods.length) periodSelect.value = periods[periods.length - 1];
     }
   }
 

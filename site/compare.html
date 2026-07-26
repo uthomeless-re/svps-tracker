@@ -214,7 +214,7 @@ const TABLE_COLUMNS = [
   { key: "crrank", label: "最高順位", defaultDir: "asc",
     sortValue: r => r.crRank ?? Infinity,
     render: r => r.crRank != null ? fmtNum(r.crRank) + "位" : "-" },
-  { key: "cr100", label: "ビヨンド回数(100位以内)", defaultDir: "desc",
+  { key: "cr100", label: "BEYOND回数(100位以内)", defaultDir: "desc",
     sortValue: r => r.cr100,
     render: r => fmtNum(r.cr100) },
   { key: "x", label: "X", defaultDir: "asc",
