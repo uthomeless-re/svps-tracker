@@ -6,6 +6,21 @@
 <title>選手詳細 | Shadowverse Premier Series 26-27 選手データトラッカー</title>
 <link rel="stylesheet" href="style.css">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<script>
+// X(旧Twitter)公式の埋め込みタイムラインウィジェット用ローダー（publish.twitter.comの標準スニペット）。
+// widgets.jsの読み込み完了を待たずにtwttr.ready(fn)でコールバックを予約できるので、
+// 後段のboot()側で「DOMにタイムライン用の<a>を差し込んでからtwttr.ready()で描画」という
+// 順序を安全に書ける（読み込みタイミングの前後関係を気にしなくていい）。
+window.twttr = (function (d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0], t = window.twttr || {};
+  if (d.getElementById(id)) return t;
+  js = d.createElement(s); js.id = id;
+  js.src = "https://platform.twitter.com/widgets.js";
+  fjs.parentNode.insertBefore(js, fjs);
+  t._e = []; t.ready = function (f) { t._e.push(f); };
+  return t;
+}(document, "script", "twitter-wjs"));
+</script>
 </head>
 <body>
 <header>
@@ -143,12 +158,28 @@ async function boot() {
       </div>
       <div class="chart-box"><canvas id="chart"></canvas></div>
     ` : `<div class="empty-note">この選手のデータはまだありません</div>`}
+    ${player.x_handle ? `
+      <div class="chart-box" style="margin-top:16px;">
+        <div style="font-size:12px;color:var(--text-muted);margin-bottom:8px;">Xタイムライン</div>
+        <a class="twitter-timeline" data-height="600" data-theme="light"
+           href="https://twitter.com/${escapeAttr(player.x_handle)}?ref_src=twsrc%5Etfw">
+          ${escapeAttr(player.player_name)}さんのツイート
+        </a>
+      </div>
+    ` : ""}
   `;
 
   if (metrics.length) {
     const sel = document.getElementById("metricSelect");
     sel.addEventListener("change", () => drawChart(history, name, sel.value, color));
     drawChart(history, name, sel.value, color);
+  }
+
+  // Xタイムラインの埋め込み<a>をDOMに入れた後に呼ぶ必要がある（widgets.jsが
+  // ページ内の.twitter-timelineをスキャンしてiframeに変換する処理をトリガーする）。
+  // twttr.ready()はwidgets.jsの読み込み前後どちらのタイミングで呼んでも安全に動く。
+  if (player.x_handle) {
+    twttr.ready(function (t) { t.widgets.load(); });
   }
 }
 

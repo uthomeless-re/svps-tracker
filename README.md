@@ -44,9 +44,9 @@ svps-tracker/
     │                             クラスアイコン表示など）
     ├── index.html               チーム一覧（トップページ）。チームをクリックすると選手カードが展開される
     │                             アコーディオン形式。並び順は通算獲得ポイント（match_results.csv集計）順
-    ├── player.html              選手詳細（写真・現在値・X/YouTubeへのリンク・折れ線グラフ、
+    ├── player.html              選手詳細（写真・現在値・X/YouTubeへのリンク・Xタイムライン埋め込み・折れ線グラフ、
     │                             ?name=選手名 で表示選手を切替）
-    ├── ranking.html             ランキング（指標×期間で選手を順位付け表示。全選手を常に表示）
+    ├── ranking.html             ランキング（指標×期間/しきい値で選手を順位付け表示。全選手を常に表示）
     ├── matches.html             試合結果（通算成績リーダーボード、?name=選手名で個別の対戦履歴）
     ├── images/players/          ダウンロードした選手写真（scrape_player_images.pyが生成、初回pushには含まれない）
     └── images/classes/          シャドバのクラスアイコン（ユーザー提供のSVG、8種）
@@ -152,6 +152,29 @@ svlabo.jp（ランクマッチ最高順位）は当初、毎日自動取得→�
 `cd scripts && python scrape_svlabo.py && python update_history.py` を手元やActionsの
 手動実行で叩けば、今まで通り `data/history.csv` に取り込めます。使わないなら
 `scripts/scrape_svlabo.py` を削除しても他のスクリプトには影響しません。
+
+### Xタイムライン埋め込みについて（player.html）
+
+選手ページには、X公式の埋め込みタイムラインウィジェット（`platform.twitter.com/widgets.js`、
+無料・APIキー不要）でその選手のポスト一覧を表示しています。`data/players.csv`の`x_handle`
+がある選手だけ表示されます。
+
+**既知の制約**: このウィジェットはX社が現在も積極的にメンテしているものではなく、
+2026年時点で表示崩れ・リンク切れなどの不具合報告が見られます。表示されない/崩れる場合は
+X社側の問題である可能性が高く、このリポジトリ側でできる対処はほぼありません
+（気になる場合は「Xで見る →」リンクで本人のプロフィールに直接飛べるようにしてあります）。
+
+### 選手名の表記ゆれについて（NAME_ALIASES）
+
+`data/svlabo_leaderboards.csv`はsvlabo.jp側の表記をそのまま持っているため、`data/players.csv`
+の選手名と完全一致しないケースがあります（例: `Chappy` → svlabo.jp側は`Chappy_ttv`、
+`ぱんさく` → svlabo.jp側は`さくさくぱんだ`。どちらも`team_tag=RID`で本人と確認済み）。
+
+このズレは`site/common.js`の`NAME_ALIASES`にマッピングを追記することで吸収しています。
+`ranking.html`の「CR順位 TOP N入り回数」ランキングはこの対応表と`normalizeName()`
+（全角/半角スペース除去+小文字化。`scripts/common.py`の`normalize_name()`と同じ考え方）
+を経由して選手を突き合わせているため、多少の表記ゆれなら自動的に吸収されます。
+それでも一致しない新しいケースが見つかったら`NAME_ALIASES`に追記してください。
 
 ## 既知の制約・注意点
 

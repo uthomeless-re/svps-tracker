@@ -118,7 +118,7 @@ async function boot() {
       headerLabel = crTopNLabel(threshold);
       lowerBetter = false;
       const counts = crTopNCounts(svlabo, threshold);
-      players.forEach(p => { valueByPlayer[p.player_name] = counts[p.player_name] || 0; });
+      players.forEach(p => { valueByPlayer[p.player_name] = crCountForPlayer(counts, p); });
     } else if (isCumulativeMetric(metric)) {
       lowerBetter = false;
       players.forEach(p => {

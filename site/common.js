@@ -10,6 +10,22 @@ const SVLABO_URL = "data/svlabo_leaderboards.csv";
 // CR(ランクマッチ)順位の「TOP N入り回数」ランキングで選べるしきい値の候補
 const CR_TOPN_THRESHOLDS = [10, 30, 50, 100];
 
+// players.csv側の選手名と、外部サイト（svlabo.jp等）側の表記が一致しない既知のケース。
+// 例: Chappy → svlabo.jp側は"Chappy_ttv"（Twitchハンドル込みの表記）、
+//     ぱんさく → svlabo.jp側は"さくさくぱんだ"（そもそも表記が別物）。
+// どちらもteam_tag=RID（RIDDLE ORDER）で本人だと裏取り済み。今後similarな表記ゆれが
+// 見つかったらここに追記していく（scripts/common.pyのTEAM_TAG_ALIASESと同じ考え方）。
+const NAME_ALIASES = {
+  "Chappy": "Chappy_ttv",
+  "ぱんさく": "さくさくぱんだ",
+};
+
+// サイト間の表記ゆれ（全角/半角スペース・大文字小文字）を吸収する緩い正規化。
+// scripts/common.pyのnormalize_name()とロジックを合わせている。
+function normalizeName(name) {
+  return String(name == null ? "" : name).trim().replace(/[\s　]/g, "").toLowerCase();
+}
+
 // data/result.json の id (1〜8) と team_tag の対応。teams.json由来の並び順に合わせている。
 const RESULT_ID_TO_TAG = {
   1: "CR", 2: "ZETA", 3: "DFM", 4: "VRL", 5: "MRG", 6: "RC", 7: "RDL", 8: "LVH",
@@ -214,15 +230,25 @@ async function loadSvlaboLeaderboard() {
 // 選手ごとに「ランクマッチ順位がthreshold位以内だった回数」を数える。
 // 1人の選手が複数の期間・複数のクラスでtop100入りしていれば、その分だけ加算される
 // （＝「通算で何回入賞級の順位を取ったか」を表す回数ランキング）。
+// キーは正規化した名前にしておき、crCountForPlayer()側でエイリアス+正規化を通して引く。
 function crTopNCounts(leaderboard, threshold) {
   const counts = {};
   leaderboard.forEach(r => {
     const rank = parseInt(r.rank, 10);
     if (!Number.isNaN(rank) && rank <= threshold) {
-      counts[r.player_name] = (counts[r.player_name] || 0) + 1;
+      const key = normalizeName(r.player_name);
+      counts[key] = (counts[key] || 0) + 1;
     }
   });
   return counts;
+}
+
+// players.csv側の選手オブジェクトから、crTopNCounts()の結果を引く。
+// NAME_ALIASESに登録があればそちらを優先し、無ければ本人の名前をそのまま
+// 正規化して引く（全角/半角スペース・大文字小文字のゆれは自動で吸収される）。
+function crCountForPlayer(counts, player) {
+  const lookupName = NAME_ALIASES[player.player_name] || player.player_name;
+  return counts[normalizeName(lookupName)] || 0;
 }
 
 function crTopNLabel(threshold) {
