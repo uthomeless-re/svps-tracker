@@ -313,10 +313,10 @@ let images = {};
 function renderModeSwitcher(app, mode) {
   app.innerHTML = `
     <div class="team-select-row" style="margin-bottom:14px;">
-      <button class="team-select-btn ${mode === "graph" ? "active" : ""}" id="modeGraphBtn"
-        style="${mode === "graph" ? "background:var(--accent);" : ""}">グラフで比較</button>
       <button class="team-select-btn ${mode === "table" ? "active" : ""}" id="modeTableBtn"
         style="${mode === "table" ? "background:var(--accent);" : ""}">表で比較</button>
+      <button class="team-select-btn ${mode === "graph" ? "active" : ""}" id="modeGraphBtn"
+        style="${mode === "graph" ? "background:var(--accent);" : ""}">グラフで比較</button>
     </div>
     <div id="modeContent"></div>
   `;

@@ -110,7 +110,6 @@ function renderLeaderboard(container, players, images, matches) {
   }).join("");
 
   container.innerHTML = `
-    <div class="empty-note" style="padding-top:0;">PS公式戦の通算成績（全試合の累計）。選手名をクリックすると個別の対戦履歴を見られます。</div>
     <table class="rank-table">
       <thead><tr><th>#</th><th>チーム</th><th>選手</th><th>戦績</th><th>勝率</th><th>獲得ポイント</th></tr></thead>
       <tbody>${body}</tbody>
@@ -206,8 +205,6 @@ function renderSectionsView(container, battleDetails) {
   }
   const sections = [...new Set(battleDetails.map(b => b.section))].sort((a, b) => a - b);
   container.innerHTML = `
-    <div class="empty-note" style="padding-top:0;">svlabo.jpが公開している節ごとの試合詳細結果。使用したクラスは通常表示、
-    登録していたが使わなかったクラスは薄く表示しています。「配信を見る」は該当バトル開始時点にジャンプします。</div>
     <div class="control-row">
       <div class="control-group">
         <label>節</label>
