@@ -5,6 +5,7 @@ const DATA_URL = "data/history.csv";
 const PLAYERS_URL = "data/players.csv";
 const IMAGES_MANIFEST_URL = "data/player_images.json";
 const MATCHES_URL = "data/match_results.csv";
+const BATTLE_DETAILS_URL = "data/battle_details.csv";
 const RESULT_JSON_URL = "data/result.json";
 const SVLABO_URL = "data/svlabo_leaderboards.csv";
 // CR(ランクマッチ)順位の「TOP N入り回数」ランキングで選べるしきい値の候補
@@ -269,6 +270,33 @@ function crCountForPlayer(counts, player) {
 
 function crTopNLabel(threshold) {
   return `CR順位 TOP${threshold}入り回数`;
+}
+
+// data/battle_details.csv（svlabo.jpの「N節 試合詳細結果＆配信時間指定URL」記事から手動で
+// 取り込んだ、節ごとの試合詳細。使用/未使用クラスの内訳と配信URL(タイムスタンプ付き)を持つ）
+// を読み込む。無ければ空配列を返す。
+async function loadBattleDetails() {
+  try {
+    const resp = await fetch(BATTLE_DETAILS_URL);
+    if (!resp.ok) return [];
+    return parseCSV(await resp.text());
+  } catch (e) {
+    return [];
+  }
+}
+
+// そのバトルでチームが登録していたクラスの一覧（class1_pool等、"|"区切り）を、
+// 実際に使ったクラス(usedName)だけ通常表示・それ以外は減光したアイコン列として描画する。
+// 「対戦に使用していないクラスも載せてほしいが、わかりやすい形に」という要望に対応するため、
+// 使ったクラスと使わなかったクラスを同じ並びの中で視覚的に区別する形にしている。
+function classPoolHTML(poolStr, usedName, size) {
+  size = size || 18;
+  const classes = (poolStr || "").split("|").filter(Boolean);
+  if (!classes.length) return "";
+  return `<span class="class-pool">${classes.map(c => {
+    const isUsed = c === usedName;
+    return `<span class="${isUsed ? "used" : "unused"}" title="${escapeAttr(c)}${isUsed ? "（使用）" : "（未使用）"}">${classIconHTML(c, size)}</span>`;
+  }).join("")}</span>`;
 }
 
 // data/result.json を読み込む（手動更新される公式チーム順位。無ければnullを返す）。

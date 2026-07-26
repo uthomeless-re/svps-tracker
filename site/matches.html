@@ -5,15 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>試合結果 | Shadowverse Premier Series 26-27 選手データトラッカー</title>
 <link rel="stylesheet" href="style.css">
-<style>
-  .match-row { display: flex; align-items: center; gap: 8px; }
-  .result-badge { font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 6px; }
-  .result-badge.win { background: #e6f7ee; color: #0a7a3d; }
-  .result-badge.lose { background: #fdeaea; color: #b3261e; }
-  /* tdに直接display:flexを当てるとtable-cellのレイアウトが崩れて行がバラバラになる
-     不具合があったため、td内側のspanにflexを当てる形にしている */
-  .vs-cell { display: inline-flex; align-items: center; gap: 6px; }
-</style>
 </head>
 <body>
 <header>
@@ -22,6 +13,7 @@
     <a class="nav-btn" href="index.html">選手一覧</a>
     <a class="nav-btn" href="ranking.html">ランキング</a>
     <a class="nav-btn active" href="matches.html">試合結果</a>
+    <a class="nav-btn" href="rounds.html">節別詳細</a>
     <a class="nav-btn" href="compare.html">比較</a>
   </nav>
 </header>

@@ -23,6 +23,8 @@ svps-tracker/
 │   ├── scrape_player_images.py ps.shadowverse-wb.comから選手写真を取得（毎日自動。既にある選手はスキップ）
 │   ├── scrape_result.py        チーム順位（result.json）を外部の公開JSONから取得（毎日自動。詳細は「チーム順位について」参照）
 │   ├── scrape_svlabo.py        svlabo.jp から ランクマッチ最高順位・レート を取得（★自動実行からは除外。手動で使う用に残してあるだけ）
+│   ├── scrape_svlabo_battle_details.py  svlabo.jpの「N節 試合詳細結果＆配信時間指定URL」記事を取り込む
+│   │                             （★自動実行からは除外。新しい節の記事が出たらURLを渡して手動実行。詳細は「節別詳細結果について」参照）
 │   ├── update_history.py       上記のスナップショットを data/history.csv に統合
 │   └── requirements.txt
 ├── data/
@@ -37,6 +39,8 @@ svps-tracker/
 │   ├── svlabo_leaderboards.csv  svlabo.jpの全ユーザー分を一括取得した手動作業の成果物
 │   │                             （period, class, rank, team_tag, player_name, rating の列。history.csvとは別管理・自動更新はされない。
 │   │                             ranking.htmlの「CR順位 TOP N入り回数」ランキングが参照する）
+│   ├── battle_details.csv      svlabo.jpの節別記事から取り込んだ試合詳細（使用/未使用クラス・配信URL付き。
+│   │                             詳細は「節別詳細結果について」参照）
 │   └── snapshots/               日次の生スクレイピング結果（デバッグ用、実行のたびに増える）
 └── site/                        表示用ページ。ページごとにファイルを分けており、今後ページを
     ├── style.css                  増やしたり構成を変えたりしやすい作りにしてある
@@ -48,6 +52,7 @@ svps-tracker/
     │                             ?name=選手名 で表示選手を切替）
     ├── ranking.html             ランキング（指標×期間/しきい値で選手を順位付け表示。全選手を常に表示）
     ├── matches.html             試合結果（通算成績リーダーボード、?name=選手名で個別の対戦履歴）
+    ├── rounds.html              節別詳細結果（節を選んで、ROUND/BATTLEごとの使用/未使用クラス・配信URLを表示）
     ├── images/players/          ダウンロードした選手写真（scrape_player_images.pyが生成、初回pushには含まれない）
     ├── images/teams/            8チームの公式ロゴ画像（提供されたPNG。common.jsのteamLogoHTML()が参照）
     └── images/classes/          シャドバのクラスアイコン（ユーザー提供のSVG、8種）
@@ -78,6 +83,7 @@ svps-tracker/
    - `README.md`
    - `data/players.csv`
    - `data/svlabo_leaderboards.csv`（一括取得した手動作業の成果物。日々のActionsでは更新されないため上書きしても安全）
+   - `data/battle_details.csv`（svlabo.jpの節別記事から取り込んだ手動作業の成果物。日々のActionsでは更新されないため上書きしても安全）
 3. `data/history.csv` / `data/match_results.csv` / `data/player_images.json` /
    `data/snapshots/` / `data/result.json`（手動更新を始めている場合）には一切触れない・
    コピー対象に含めない
@@ -165,6 +171,36 @@ svlabo.jp（ランクマッチ最高順位）は当初、毎日自動取得→�
 （全角/半角スペース除去+小文字化。`scripts/common.py`の`normalize_name()`と同じ考え方）
 を経由して選手を突き合わせているため、多少の表記ゆれなら自動的に吸収されます。
 それでも一致しない新しいケースが見つかったら`NAME_ALIASES`に追記してください。
+
+### 節別詳細結果について（battle_details.csv / rounds.html）
+
+svlabo.jpは節（1節、2節、...）が終わるごとに「Premier Series 26-27 N節 試合詳細結果＆配信時間指定URL」
+という記事を公開しています（例: `https://svlabo.jp/blog-entry-1793.html`）。この記事には公式サイトの
+試合結果には無い情報が載っています。
+
+- そのバトルで**実際に使ったクラス**と、**登録していたが使わなかったクラス**（BO1で何デッキ持ち込んだか）
+- 配信の**該当バトル開始時点にジャンプするタイムスタンプ付きURL**
+
+これを`data/battle_details.csv`に取り込み、`rounds.html`（ナビの「節別詳細」）で表示しています。
+使ったクラスは通常表示、登録していたが使わなかったクラスは薄く表示することで、一目で区別できるように
+しています。
+
+**取得方法（手動トリガー、自動実行はしていない）**: この記事はsvlabo.jpが節ごとに不定期に公開するもので、
+URL（`blog-entry-XXXX.html`）に規則性が無いため新記事の自動発見ができません。新しい節の記事が公開されたら、
+そのURLを教えてもらって取り込む運用です。スクリプトとしては以下のように実行します（複数節をまとめて渡すことも
+できます）。
+
+```
+cd scripts
+python scrape_svlabo_battle_details.py https://svlabo.jp/blog-entry-1793.html 1 https://svlabo.jp/blog-entry-1800.html 2
+python update_history.py の実行は不要（このデータはhistory.csvとは別経路）
+```
+
+記事ページには表示用HTMLとは別に、対戦データそのものがJSオブジェクト（`battle_info`, `tour_info`）として
+`<script>`タグ内に埋め込まれています。これは公式に文書化されたものではなく、ブラウザで実際に開いて調査して
+見つけた構造なので、svlabo.jp側の実装が変わると取得できなくなる可能性があります（その場合は同じ要領で
+再調査が必要）。重複排除のキーは`(section, half, round_no, battle_no)`なので、同じ節を複数回取り込んでも
+行が増殖することはありません。
 
 ## 既知の制約・注意点
 
