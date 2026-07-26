@@ -21,7 +21,8 @@ svps-tracker/
 │   ├── update_history.py    上記のスナップショットを data/history.csv に統合
 │   └── requirements.txt
 ├── data/
-│   ├── players.csv          選手マスタ（2026ps-fixedのteams.jsonから抽出、8チーム37名）
+│   ├── players.csv          選手マスタ（8チーム37名。youtube_url/twitch_urlはshadowverse-reference.com
+│   │                         から取り直して統一済み。詳細は「players.csvについて」参照）
 │   ├── history.csv          蓄積される日次データ（ロング形式）
 │   ├── svlabo_leaderboards.csv  svlabo.jpの全ユーザー分を一括取得した手動作業の成果物
 │   │                             （period, class, rank, team_tag, player_name, rating の列。history.csvとは別管理・自動更新はされない）
@@ -41,6 +42,34 @@ svps-tracker/
 認証について: pushやPages公開は GitHub Actions が自動発行する `GITHUB_TOKEN` を使うので、
 リポジトリのSecretsなどにあなた自身のトークンを登録する必要はありません
 （workflow内の `permissions: contents: write / pages: write / id-token: write` だけで完結します）。
+ただし、YouTube登録者数を1万人超でも端数まで正確に取得したい場合だけ、別途YouTube Data APIキーが
+必要です（後述の「YouTube Data APIキーの取得方法」参照）。このキーはあなた自身がGoogleで発行し、
+GitHubリポジトリのSecretsに直接登録するものなので、Claude側やこのチャット上でキーを
+やり取りすることはありません。キーを登録しなくても`scrape_youtube.py`は動作しますが、その場合は
+チャンネルページのスクレイピングにフォールバックするため、1万人超のチャンネルは概算値になります
+（詳細は「YouTube Data APIキーの取得方法」末尾およびYouTube登録者数の既知の制約を参照）。
+
+## YouTube Data APIキーの取得方法
+
+登録者数を1万人未満まで含めて正確な数字で取得するため、YouTubeチャンネルページの
+スクレイピングではなく公式のYouTube Data API v3を使っています。無料枠（1日10,000ユニット）
+の範囲内で十分足ります（このリポジトリの規模なら1日1ユニットも使いません）。
+
+1. https://console.cloud.google.com/ にアクセスし、適当な名前で新しいプロジェクトを作成する
+2. 「APIとサービス」→「ライブラリ」で「YouTube Data API v3」を検索し、有効にする
+3. 「APIとサービス」→「認証情報」→「認証情報を作成」→「APIキー」でキーを発行する
+   （必要なら「APIの制限」で YouTube Data API v3 のみに絞っておくと安全）
+4. あなたのGitHubリポジトリの Settings → Secrets and variables → Actions →
+   「New repository secret」で、Name: `YOUTUBE_API_KEY` / Secret: 発行したキー を登録する
+5. これで `daily-update.yml` の `scrape_youtube.py` ステップが自動的にこのSecretを読み込みます
+
+このキーを設定していない場合や、キーが無効・クォータ超過などでAPI呼び出しそのものが失敗した場合は、
+`scrape_youtube.py` は自動的に旧来のチャンネルページスクレイピング方式にフォールバックします
+（エラーにはならず、登録者数の取得自体がスキップされることはありません）。ただしフォールバック時は
+登録者数が概ね1万人を超えるチャンネル（12チャンネル）はYouTube側の表示自体が「1.35万人」のように
+丸められるため、端数までの正確な数字は取れません。端数まで必要な場合はAPIキーの設定が必須です。
+その日どちらの方式で取得されたかは `data/snapshots/youtube_*.json`（history.csv取り込み前の
+生データ）の各行の `via`（"api" または "scrape"）フィールドで確認できます。
 
 ## なぜGitHub Actions方式にしたか
 
@@ -84,17 +113,32 @@ svlabo.jp（ランクマッチ最高順位）は当初、毎日自動取得→�
   取得した生テキストを元に、「BATTLE Nトークンの前後を選手名/クラス/勝敗/獲得ポイントとして
   読み取る」ロジックに書き換え済みです（`parse_battles()`）。「チームバトル」という
   個人に紐づかない対戦枠は成績から除外しています。
-- **YouTube登録者数（scrape_youtube.py）**: 各選手のYouTubeチャンネルの `/about` ページのHTMLに
-  埋め込まれたJSON文字列（`"subscriberCountText":"チャンネル登録者数 8010人"`）を正規表現で
-  抜き出しています。ブラウザで2チャンネル分実際に確認済みですが、**GitHub Actions上での動作は
-  まだ未確認**です。US等のデータセンターIPからのアクセスだとGoogleの「Cookieに関する選択」
-  同意画面が挟まる可能性があり、その場合は0件になります（念のためCONSENT cookieを事前設定して
-  回避を試みてはいます）。0件になった場合は他のスクリプトと同様、Actionsのログ
-  （`data/snapshots/youtube_debug_*.json`）を見て原因調査してください。
-  また、players.csvのyoutube_urlが空の選手（Mishadow51, monakawan, 山田レクイエム, Chappy,
-  Stylish_deko）は対象外です。
+- **YouTube登録者数（scrape_youtube.py）**: メインはYouTube Data API（`channels.list`）による
+  取得で、`YOUTUBE_API_KEY`が設定されていれば端数まで正確な登録者数が取れます。APIキーの
+  取得方法は上記「YouTube Data APIキーの取得方法」を参照してください。
+  キーが未設定の場合、またはAPI呼び出し自体が失敗した場合（キー無効・クォータ超過など）は、
+  自動的にチャンネルページ（/about）のHTMLをスクレイピングする旧方式にフォールバックします。
+  37チャンネル全部を実際に確認したところ、この旧方式では登録者数が概ね1万人を超えるチャンネル
+  （12チャンネル）はYouTube側の表示自体が「1.35万人」のように丸められてしまい、端数まで
+  取得できません（これがそもそもAPI方式に切り替えた理由です）。端数まで必要なチャンネルが
+  含まれる場合は、APIキーの設定を推奨します。
+  Chappyのみ、shadowverse-reference.com上でもYouTubeチャンネルが確認できず（Twitchのみで
+  配信）、両方式とも対象外になります。
   このサイト自体には登録者数の推移データはなく「現在値」しか取れないため、Xフォロワー数と同様、
   このスクリプトを動かし始めた日からhistory.csvに蓄積されていきます。
+- **Twitchのフォロワー数は今のところ自動取得していません**: 37名中8名
+  （ねぎま、glory、Toby、もっちゃま、ぱらちゃん、折り紙、Chappy、Stylish_deko）は
+  Twitchでも配信しており、players.csvにtwitch_url列として保持していますが、フォロワー数の
+  自動取得はまだ実装していません。理由は2つあります。
+  1. Twitchの公式Helix APIでフォロワー数を取得する`Get Channel Followers`エンドポイントは、
+     配信者本人（またはそのモデレーター）のOAuthトークンでのアクセスしか許可されておらず、
+     アプリ側の資格情報だけでは他人のチャンネルのフォロワー数を取得できない仕様になっている
+     （2023年のAPI変更以降）。
+  2. 非公式のGraphQL API（`gql.twitch.tv`）経由で取得する方法も試したが、フォロワー数を含む
+     クエリの正しいpersisted queryハッシュ値を特定できなかった（Twitchの公式Webクライアントの
+     内部実装に依存しており、頻繁に変わる可能性が高く、svlabo.jpよりもさらに壊れやすい）。
+  もしTwitchのフォロワー数も追跡したい場合は、8名それぞれに自分のチャンネルでこのツール用の
+  アプリを認可してもらう（現実的に厳しい）か、GraphQLの正しいクエリを別途調査する必要がある。
 - **開発環境での制約**: このリポジトリのコードは、Claudeの実行サンドボックス環境ではネットワーク制限により
   Playwrightのブラウザバイナリをダウンロードできず、実際にブラウザを起動しての動作確認はできません。
   そのため、GitHub Actions上で実際に取得された生ログ（タイムスタンプ付きログファイル）を
@@ -102,6 +146,19 @@ svlabo.jp（ランクマッチ最高順位）は当初、毎日自動取得→�
   デバッグしています。今後もエラーが出た場合は、Actionsの実行結果ページ右上の「...」から
   「Download log archive」でログ一式をダウンロードし、このチャットに添付してもらえれば
   同じ方法で調査できます。
+
+## players.csvについて
+
+もともとのplayers.csvは`2026ps-fixed/data/teams.json`（初期にいただいたファイル）から
+抽出したものでしたが、そこに入っていたyoutube_urlは古い/一部欠落している状態でした
+（Mishadow51, monakawan, 山田レクイエム, Stylish_dekoの4名は本来YouTubeチャンネルを
+持っているのに空欄になっていた）。
+
+現在のplayers.csvは、実際に配信活動状況をshadowverse-reference.comで全選手分確認し直し、
+そこで使われているYouTubeチャンネルID（`/channel/UCxxxx`形式）に統一しています。
+併せてtwitch_url列を新設し、Twitchでも配信している8名（ねぎま、glory、Toby、もっちゃま、
+ぱらちゃん、折り紙、Chappy、Stylish_deko）のTwitch URLも入れてあります（Chappyのみ
+YouTubeを持たずTwitchのみ）。
 
 ## history.csv のスキーマ
 

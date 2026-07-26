@@ -27,7 +27,8 @@ def today_str():
 
 
 def load_players():
-    """data/players.csv を読み込み、[{team_tag, team_name, player_name, x_handle, x_url, youtube_url}, ...] を返す。"""
+    """data/players.csv を読み込み、
+    [{team_tag, team_name, player_name, x_handle, x_url, youtube_url, twitch_url}, ...] を返す。"""
     with open(PLAYERS_CSV, encoding="utf-8-sig", newline="") as f:
         return list(csv.DictReader(f))
 
