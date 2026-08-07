@@ -410,7 +410,7 @@
     "rank": "1",
     "team_tag": "MRG",
     "player_name": "もっちゃま",
-    "value": 92.3,
+    "value": 94.5,
     "unit": "時間",
     "metric": "stream_duration",
     "period": "regular_season",
@@ -421,7 +421,7 @@
     "rank": "2",
     "team_tag": "RC",
     "player_name": "つきあかめん",
-    "value": 73.6,
+    "value": 77.0,
     "unit": "時間",
     "metric": "stream_duration",
     "period": "regular_season",
@@ -432,7 +432,7 @@
     "rank": "3",
     "team_tag": "RID",
     "player_name": "Chappy",
-    "value": 58.9,
+    "value": 61.6,
     "unit": "時間",
     "metric": "stream_duration",
     "period": "regular_season",
@@ -443,7 +443,7 @@
     "rank": "4",
     "team_tag": "MRG",
     "player_name": "glory",
-    "value": 54.3,
+    "value": 58.7,
     "unit": "時間",
     "metric": "stream_duration",
     "period": "regular_season",
@@ -476,7 +476,7 @@
     "rank": "7",
     "team_tag": "ZETA",
     "player_name": "ねぎま",
-    "value": 51.2,
+    "value": 52.9,
     "unit": "時間",
     "metric": "stream_duration",
     "period": "regular_season",
@@ -485,6 +485,17 @@
   },
   {
     "rank": "8",
+    "team_tag": "LVH",
+    "player_name": "rikka",
+    "value": 40.5,
+    "unit": "時間",
+    "metric": "stream_duration",
+    "period": "regular_season",
+    "date": "2026-08-07",
+    "source": "shadowverse-reference.com"
+  },
+  {
+    "rank": "9",
     "team_tag": "LVH",
     "player_name": "Era53",
     "value": 39.8,
@@ -495,21 +506,10 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "9",
+    "rank": "10",
     "team_tag": "RID",
     "player_name": "Stylish_deko",
-    "value": 38.1,
-    "unit": "時間",
-    "metric": "stream_duration",
-    "period": "regular_season",
-    "date": "2026-08-07",
-    "source": "shadowverse-reference.com"
-  },
-  {
-    "rank": "10",
-    "team_tag": "DFM",
-    "player_name": "ユーリ",
-    "value": 37.4,
+    "value": 39.7,
     "unit": "時間",
     "metric": "stream_duration",
     "period": "regular_season",
@@ -520,7 +520,7 @@
     "rank": "11",
     "team_tag": "MRG",
     "player_name": "Spicies",
-    "value": 36.2,
+    "value": 37.8,
     "unit": "時間",
     "metric": "stream_duration",
     "period": "regular_season",
@@ -531,7 +531,7 @@
     "rank": "12",
     "team_tag": "ZETA",
     "player_name": "ヘイム",
-    "value": 35.6,
+    "value": 37.6,
     "unit": "時間",
     "metric": "stream_duration",
     "period": "regular_season",
@@ -540,9 +540,9 @@
   },
   {
     "rank": "13",
-    "team_tag": "ZETA",
-    "player_name": "CQCQ",
-    "value": 33.1,
+    "team_tag": "DFM",
+    "player_name": "ユーリ",
+    "value": 37.4,
     "unit": "時間",
     "metric": "stream_duration",
     "period": "regular_season",
@@ -553,7 +553,7 @@
     "rank": "14",
     "team_tag": "LVH",
     "player_name": "智念せいら",
-    "value": 30.8,
+    "value": 35.9,
     "unit": "時間",
     "metric": "stream_duration",
     "period": "regular_season",
@@ -562,9 +562,9 @@
   },
   {
     "rank": "15",
-    "team_tag": "LVH",
-    "player_name": "rikka",
-    "value": 30.2,
+    "team_tag": "ZETA",
+    "player_name": "CQCQ",
+    "value": 33.1,
     "unit": "時間",
     "metric": "stream_duration",
     "period": "regular_season",
@@ -584,6 +584,17 @@
   },
   {
     "rank": "17",
+    "team_tag": "RID",
+    "player_name": "折り紙",
+    "value": 27.6,
+    "unit": "時間",
+    "metric": "stream_duration",
+    "period": "regular_season",
+    "date": "2026-08-07",
+    "source": "shadowverse-reference.com"
+  },
+  {
+    "rank": "18",
     "team_tag": "DFM",
     "player_name": "MingiGod",
     "value": 27.4,
@@ -594,7 +605,7 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "18",
+    "rank": "19",
     "team_tag": "ZETA",
     "player_name": "TBT",
     "value": 27.1,
@@ -605,10 +616,10 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "19",
-    "team_tag": "RID",
-    "player_name": "折り紙",
-    "value": 25.8,
+    "rank": "20",
+    "team_tag": "CR",
+    "player_name": "Atom",
+    "value": 26.7,
     "unit": "時間",
     "metric": "stream_duration",
     "period": "regular_season",
@@ -616,7 +627,18 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "20",
+    "rank": "21",
+    "team_tag": "CR",
+    "player_name": "空白",
+    "value": 26.0,
+    "unit": "時間",
+    "metric": "stream_duration",
+    "period": "regular_season",
+    "date": "2026-08-07",
+    "source": "shadowverse-reference.com"
+  },
+  {
+    "rank": "22",
     "team_tag": "VL",
     "player_name": "まっつ",
     "value": 23.3,
@@ -627,29 +649,18 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "21",
-    "team_tag": "CR",
-    "player_name": "Atom",
-    "value": 22.4,
-    "unit": "時間",
-    "metric": "stream_duration",
-    "period": "regular_season",
-    "date": "2026-08-07",
-    "source": "shadowverse-reference.com"
-  },
-  {
-    "rank": "22",
-    "team_tag": "CR",
-    "player_name": "空白",
-    "value": 20.7,
-    "unit": "時間",
-    "metric": "stream_duration",
-    "period": "regular_season",
-    "date": "2026-08-07",
-    "source": "shadowverse-reference.com"
-  },
-  {
     "rank": "23",
+    "team_tag": "MRG",
+    "player_name": "マイト",
+    "value": 21.8,
+    "unit": "時間",
+    "metric": "stream_duration",
+    "period": "regular_season",
+    "date": "2026-08-07",
+    "source": "shadowverse-reference.com"
+  },
+  {
+    "rank": "24",
     "team_tag": "CR",
     "player_name": "Winter",
     "value": 19.9,
@@ -660,21 +671,10 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "24",
+    "rank": "25",
     "team_tag": "DFM",
     "player_name": "ミル",
     "value": 19.3,
-    "unit": "時間",
-    "metric": "stream_duration",
-    "period": "regular_season",
-    "date": "2026-08-07",
-    "source": "shadowverse-reference.com"
-  },
-  {
-    "rank": "25",
-    "team_tag": "MRG",
-    "player_name": "マイト",
-    "value": 19.1,
     "unit": "時間",
     "metric": "stream_duration",
     "period": "regular_season",
@@ -716,9 +716,9 @@
   },
   {
     "rank": "29",
-    "team_tag": "CR",
-    "player_name": "ふぇぐ",
-    "value": 12.9,
+    "team_tag": "LVH",
+    "player_name": "Hirobosu",
+    "value": 14.4,
     "unit": "時間",
     "metric": "stream_duration",
     "period": "regular_season",
@@ -727,9 +727,9 @@
   },
   {
     "rank": "30",
-    "team_tag": "LVH",
-    "player_name": "Hirobosu",
-    "value": 11.9,
+    "team_tag": "RC",
+    "player_name": "あぐのむ",
+    "value": 13.4,
     "unit": "時間",
     "metric": "stream_duration",
     "period": "regular_season",
@@ -738,9 +738,9 @@
   },
   {
     "rank": "31",
-    "team_tag": "RC",
-    "player_name": "あぐのむ",
-    "value": 11.5,
+    "team_tag": "CR",
+    "player_name": "ふぇぐ",
+    "value": 12.9,
     "unit": "時間",
     "metric": "stream_duration",
     "period": "regular_season",
@@ -773,7 +773,7 @@
     "rank": "34",
     "team_tag": "DFM",
     "player_name": "かなで",
-    "value": 9.0,
+    "value": 9.1,
     "unit": "時間",
     "metric": "stream_duration",
     "period": "regular_season",
@@ -817,7 +817,7 @@
     "rank": "1",
     "team_tag": "RC",
     "player_name": "つきあかめん",
-    "value": 20.5,
+    "value": 23.9,
     "unit": "時間",
     "metric": "stream_duration",
     "period": "aug_early_2026",
@@ -826,9 +826,9 @@
   },
   {
     "rank": "2",
-    "team_tag": "RID",
-    "player_name": "Stylish_deko",
-    "value": 14.9,
+    "team_tag": "LVH",
+    "player_name": "rikka",
+    "value": 21.4,
     "unit": "時間",
     "metric": "stream_duration",
     "period": "aug_early_2026",
@@ -837,9 +837,9 @@
   },
   {
     "rank": "3",
-    "team_tag": "ZETA",
-    "player_name": "ねぎま",
-    "value": 13.6,
+    "team_tag": "RID",
+    "player_name": "Stylish_deko",
+    "value": 16.6,
     "unit": "時間",
     "metric": "stream_duration",
     "period": "aug_early_2026",
@@ -848,6 +848,72 @@
   },
   {
     "rank": "4",
+    "team_tag": "RID",
+    "player_name": "Chappy",
+    "value": 15.4,
+    "unit": "時間",
+    "metric": "stream_duration",
+    "period": "aug_early_2026",
+    "date": "2026-08-07",
+    "source": "shadowverse-reference.com"
+  },
+  {
+    "rank": "5",
+    "team_tag": "ZETA",
+    "player_name": "ねぎま",
+    "value": 15.3,
+    "unit": "時間",
+    "metric": "stream_duration",
+    "period": "aug_early_2026",
+    "date": "2026-08-07",
+    "source": "shadowverse-reference.com"
+  },
+  {
+    "rank": "6",
+    "team_tag": "MRG",
+    "player_name": "glory",
+    "value": 15.0,
+    "unit": "時間",
+    "metric": "stream_duration",
+    "period": "aug_early_2026",
+    "date": "2026-08-07",
+    "source": "shadowverse-reference.com"
+  },
+  {
+    "rank": "7",
+    "team_tag": "LVH",
+    "player_name": "Hirobosu",
+    "value": 14.4,
+    "unit": "時間",
+    "metric": "stream_duration",
+    "period": "aug_early_2026",
+    "date": "2026-08-07",
+    "source": "shadowverse-reference.com"
+  },
+  {
+    "rank": "8",
+    "team_tag": "ZETA",
+    "player_name": "ヘイム",
+    "value": 13.7,
+    "unit": "時間",
+    "metric": "stream_duration",
+    "period": "aug_early_2026",
+    "date": "2026-08-07",
+    "source": "shadowverse-reference.com"
+  },
+  {
+    "rank": "9",
+    "team_tag": "MRG",
+    "player_name": "もっちゃま",
+    "value": 13.5,
+    "unit": "時間",
+    "metric": "stream_duration",
+    "period": "aug_early_2026",
+    "date": "2026-08-07",
+    "source": "shadowverse-reference.com"
+  },
+  {
+    "rank": "10",
     "team_tag": "VL",
     "player_name": "monakawan",
     "value": 13.0,
@@ -858,51 +924,7 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "5",
-    "team_tag": "RID",
-    "player_name": "Chappy",
-    "value": 12.7,
-    "unit": "時間",
-    "metric": "stream_duration",
-    "period": "aug_early_2026",
-    "date": "2026-08-07",
-    "source": "shadowverse-reference.com"
-  },
-  {
-    "rank": "6",
-    "team_tag": "LVH",
-    "player_name": "Hirobosu",
-    "value": 11.9,
-    "unit": "時間",
-    "metric": "stream_duration",
-    "period": "aug_early_2026",
-    "date": "2026-08-07",
-    "source": "shadowverse-reference.com"
-  },
-  {
-    "rank": "7",
-    "team_tag": "ZETA",
-    "player_name": "ヘイム",
-    "value": 11.7,
-    "unit": "時間",
-    "metric": "stream_duration",
-    "period": "aug_early_2026",
-    "date": "2026-08-07",
-    "source": "shadowverse-reference.com"
-  },
-  {
-    "rank": "8",
-    "team_tag": "MRG",
-    "player_name": "もっちゃま",
-    "value": 11.4,
-    "unit": "時間",
-    "metric": "stream_duration",
-    "period": "aug_early_2026",
-    "date": "2026-08-07",
-    "source": "shadowverse-reference.com"
-  },
-  {
-    "rank": "9",
+    "rank": "11",
     "team_tag": "DFM",
     "player_name": "ユーリ",
     "value": 11.3,
@@ -913,32 +935,10 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "10",
-    "team_tag": "LVH",
-    "player_name": "rikka",
-    "value": 11.1,
-    "unit": "時間",
-    "metric": "stream_duration",
-    "period": "aug_early_2026",
-    "date": "2026-08-07",
-    "source": "shadowverse-reference.com"
-  },
-  {
-    "rank": "11",
-    "team_tag": "MRG",
-    "player_name": "glory",
-    "value": 10.6,
-    "unit": "時間",
-    "metric": "stream_duration",
-    "period": "aug_early_2026",
-    "date": "2026-08-07",
-    "source": "shadowverse-reference.com"
-  },
-  {
     "rank": "12",
-    "team_tag": "RC",
-    "player_name": "ぱらちゃん",
-    "value": 9.0,
+    "team_tag": "CR",
+    "player_name": "Atom",
+    "value": 10.4,
     "unit": "時間",
     "metric": "stream_duration",
     "period": "aug_early_2026",
@@ -949,7 +949,7 @@
     "rank": "13",
     "team_tag": "RID",
     "player_name": "折り紙",
-    "value": 8.3,
+    "value": 10.1,
     "unit": "時間",
     "metric": "stream_duration",
     "period": "aug_early_2026",
@@ -958,9 +958,9 @@
   },
   {
     "rank": "14",
-    "team_tag": "ZETA",
-    "player_name": "TBT",
-    "value": 7.8,
+    "team_tag": "MRG",
+    "player_name": "マイト",
+    "value": 10.0,
     "unit": "時間",
     "metric": "stream_duration",
     "period": "aug_early_2026",
@@ -969,9 +969,9 @@
   },
   {
     "rank": "15",
-    "team_tag": "MRG",
-    "player_name": "マイト",
-    "value": 7.3,
+    "team_tag": "RC",
+    "player_name": "ぱらちゃん",
+    "value": 9.0,
     "unit": "時間",
     "metric": "stream_duration",
     "period": "aug_early_2026",
@@ -982,7 +982,7 @@
     "rank": "16",
     "team_tag": "MRG",
     "player_name": "Spicies",
-    "value": 6.4,
+    "value": 7.9,
     "unit": "時間",
     "metric": "stream_duration",
     "period": "aug_early_2026",
@@ -991,6 +991,28 @@
   },
   {
     "rank": "17",
+    "team_tag": "ZETA",
+    "player_name": "TBT",
+    "value": 7.8,
+    "unit": "時間",
+    "metric": "stream_duration",
+    "period": "aug_early_2026",
+    "date": "2026-08-07",
+    "source": "shadowverse-reference.com"
+  },
+  {
+    "rank": "18",
+    "team_tag": "LVH",
+    "player_name": "智念せいら",
+    "value": 7.3,
+    "unit": "時間",
+    "metric": "stream_duration",
+    "period": "aug_early_2026",
+    "date": "2026-08-07",
+    "source": "shadowverse-reference.com"
+  },
+  {
+    "rank": "19",
     "team_tag": "ZETA",
     "player_name": "CQCQ",
     "value": 6.2,
@@ -1001,18 +1023,7 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "18",
-    "team_tag": "CR",
-    "player_name": "Atom",
-    "value": 6.2,
-    "unit": "時間",
-    "metric": "stream_duration",
-    "period": "aug_early_2026",
-    "date": "2026-08-07",
-    "source": "shadowverse-reference.com"
-  },
-  {
-    "rank": "19",
+    "rank": "20",
     "team_tag": "RC",
     "player_name": "たばた",
     "value": 6.0,
@@ -1023,7 +1034,7 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "20",
+    "rank": "21",
     "team_tag": "VL",
     "player_name": "まっつ",
     "value": 5.7,
@@ -1034,7 +1045,7 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "21",
+    "rank": "22",
     "team_tag": "RC",
     "player_name": "拓海",
     "value": 5.6,
@@ -1045,7 +1056,29 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "22",
+    "rank": "23",
+    "team_tag": "CR",
+    "player_name": "空白",
+    "value": 5.3,
+    "unit": "時間",
+    "metric": "stream_duration",
+    "period": "aug_early_2026",
+    "date": "2026-08-07",
+    "source": "shadowverse-reference.com"
+  },
+  {
+    "rank": "24",
+    "team_tag": "RC",
+    "player_name": "あぐのむ",
+    "value": 4.6,
+    "unit": "時間",
+    "metric": "stream_duration",
+    "period": "aug_early_2026",
+    "date": "2026-08-07",
+    "source": "shadowverse-reference.com"
+  },
+  {
+    "rank": "25",
     "team_tag": "LVH",
     "player_name": "Era53",
     "value": 4.2,
@@ -1056,7 +1089,7 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "23",
+    "rank": "26",
     "team_tag": "MRG",
     "player_name": "Toby",
     "value": 4.1,
@@ -1067,7 +1100,7 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "24",
+    "rank": "27",
     "team_tag": "DFM",
     "player_name": "MingiGod",
     "value": 3.7,
@@ -1078,7 +1111,7 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "25",
+    "rank": "28",
     "team_tag": "CR",
     "player_name": "Winter",
     "value": 3.6,
@@ -1089,7 +1122,7 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "26",
+    "rank": "29",
     "team_tag": "CR",
     "player_name": "ふえた",
     "value": 3.5,
@@ -1100,7 +1133,7 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "27",
+    "rank": "30",
     "team_tag": "DFM",
     "player_name": "ミル",
     "value": 2.9,
@@ -1111,7 +1144,7 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "28",
+    "rank": "31",
     "team_tag": "LVH",
     "player_name": "だーよね",
     "value": 2.8,
@@ -1122,18 +1155,7 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "29",
-    "team_tag": "RC",
-    "player_name": "あぐのむ",
-    "value": 2.7,
-    "unit": "時間",
-    "metric": "stream_duration",
-    "period": "aug_early_2026",
-    "date": "2026-08-07",
-    "source": "shadowverse-reference.com"
-  },
-  {
-    "rank": "30",
+    "rank": "32",
     "team_tag": "DFM",
     "player_name": "かなで",
     "value": 2.2,
@@ -1144,18 +1166,7 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "31",
-    "team_tag": "LVH",
-    "player_name": "智念せいら",
-    "value": 2.1,
-    "unit": "時間",
-    "metric": "stream_duration",
-    "period": "aug_early_2026",
-    "date": "2026-08-07",
-    "source": "shadowverse-reference.com"
-  },
-  {
-    "rank": "32",
+    "rank": "33",
     "team_tag": "CR",
     "player_name": "ふぇぐ",
     "value": 1.6,
@@ -1166,7 +1177,7 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "33",
+    "rank": "34",
     "team_tag": "VL",
     "player_name": "Terarina",
     "value": 0.9,
@@ -1177,18 +1188,7 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "34T",
-    "team_tag": "CR",
-    "player_name": "空白",
-    "value": 0.0,
-    "unit": "時間",
-    "metric": "stream_duration",
-    "period": "aug_early_2026",
-    "date": "2026-08-07",
-    "source": "shadowverse-reference.com"
-  },
-  {
-    "rank": "34T",
+    "rank": "35T",
     "team_tag": "VL",
     "player_name": "Mishadow51",
     "value": 0.0,
@@ -1199,7 +1199,7 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "34T",
+    "rank": "35T",
     "team_tag": "RID",
     "player_name": "山田レクイエム",
     "value": 0.0,
@@ -1210,7 +1210,7 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "34T",
+    "rank": "35T",
     "team_tag": "RID",
     "player_name": "ぱんさく",
     "value": 0.0,
@@ -3545,7 +3545,7 @@
     "rank": "1",
     "team_tag": "MRG",
     "player_name": "もっちゃま",
-    "value": 143388,
+    "value": 147444,
     "unit": "人時間",
     "metric": "watch_time",
     "period": "regular_season",
@@ -3555,8 +3555,8 @@
   {
     "rank": "2",
     "team_tag": "MRG",
-    "player_name": "Spicies",
-    "value": 58544,
+    "player_name": "glory",
+    "value": 62037,
     "unit": "人時間",
     "metric": "watch_time",
     "period": "regular_season",
@@ -3566,8 +3566,8 @@
   {
     "rank": "3",
     "team_tag": "MRG",
-    "player_name": "glory",
-    "value": 57569,
+    "player_name": "Spicies",
+    "value": 60215,
     "unit": "人時間",
     "metric": "watch_time",
     "period": "regular_season",
@@ -3599,8 +3599,8 @@
   {
     "rank": "6",
     "team_tag": "LVH",
-    "player_name": "智念せいら",
-    "value": 36034,
+    "player_name": "rikka",
+    "value": 37653,
     "unit": "人時間",
     "metric": "watch_time",
     "period": "regular_season",
@@ -3610,8 +3610,8 @@
   {
     "rank": "7",
     "team_tag": "LVH",
-    "player_name": "rikka",
-    "value": 28661,
+    "player_name": "智念せいら",
+    "value": 37265,
     "unit": "人時間",
     "metric": "watch_time",
     "period": "regular_season",
@@ -3622,7 +3622,7 @@
     "rank": "8",
     "team_tag": "RC",
     "player_name": "つきあかめん",
-    "value": 28072,
+    "value": 29260,
     "unit": "人時間",
     "metric": "watch_time",
     "period": "regular_season",
@@ -3633,7 +3633,7 @@
     "rank": "9",
     "team_tag": "MRG",
     "player_name": "マイト",
-    "value": 26757,
+    "value": 27927,
     "unit": "人時間",
     "metric": "watch_time",
     "period": "regular_season",
@@ -3688,7 +3688,7 @@
     "rank": "14",
     "team_tag": "ZETA",
     "player_name": "ヘイム",
-    "value": 9569,
+    "value": 9795,
     "unit": "人時間",
     "metric": "watch_time",
     "period": "regular_season",
@@ -3697,9 +3697,9 @@
   },
   {
     "rank": "15",
-    "team_tag": "ZETA",
-    "player_name": "ねぎま",
-    "value": 8603,
+    "team_tag": "CR",
+    "player_name": "Atom",
+    "value": 9671,
     "unit": "人時間",
     "metric": "watch_time",
     "period": "regular_season",
@@ -3708,9 +3708,9 @@
   },
   {
     "rank": "16",
-    "team_tag": "CR",
-    "player_name": "Atom",
-    "value": 7905,
+    "team_tag": "ZETA",
+    "player_name": "ねぎま",
+    "value": 8756,
     "unit": "人時間",
     "metric": "watch_time",
     "period": "regular_season",
@@ -3721,7 +3721,7 @@
     "rank": "17",
     "team_tag": "RC",
     "player_name": "あぐのむ",
-    "value": 6391,
+    "value": 6955,
     "unit": "人時間",
     "metric": "watch_time",
     "period": "regular_season",
@@ -3732,7 +3732,7 @@
     "rank": "18",
     "team_tag": "RID",
     "player_name": "Chappy",
-    "value": 6023,
+    "value": 6185,
     "unit": "人時間",
     "metric": "watch_time",
     "period": "regular_season",
@@ -3765,7 +3765,7 @@
     "rank": "21",
     "team_tag": "RID",
     "player_name": "折り紙",
-    "value": 3071,
+    "value": 3280,
     "unit": "人時間",
     "metric": "watch_time",
     "period": "regular_season",
@@ -3774,9 +3774,9 @@
   },
   {
     "rank": "22",
-    "team_tag": "RID",
-    "player_name": "Stylish_deko",
-    "value": 2736,
+    "team_tag": "LVH",
+    "player_name": "Hirobosu",
+    "value": 3204,
     "unit": "人時間",
     "metric": "watch_time",
     "period": "regular_season",
@@ -3785,9 +3785,9 @@
   },
   {
     "rank": "23",
-    "team_tag": "DFM",
-    "player_name": "MingiGod",
-    "value": 2465,
+    "team_tag": "RID",
+    "player_name": "Stylish_deko",
+    "value": 2769,
     "unit": "人時間",
     "metric": "watch_time",
     "period": "regular_season",
@@ -3796,9 +3796,9 @@
   },
   {
     "rank": "24",
-    "team_tag": "LVH",
-    "player_name": "Hirobosu",
-    "value": 2429,
+    "team_tag": "DFM",
+    "player_name": "MingiGod",
+    "value": 2465,
     "unit": "人時間",
     "metric": "watch_time",
     "period": "regular_season",
@@ -3863,8 +3863,8 @@
   {
     "rank": "30",
     "team_tag": "CR",
-    "player_name": "ふえた",
-    "value": 769,
+    "player_name": "空白",
+    "value": 814,
     "unit": "人時間",
     "metric": "watch_time",
     "period": "regular_season",
@@ -3874,8 +3874,8 @@
   {
     "rank": "31",
     "team_tag": "CR",
-    "player_name": "空白",
-    "value": 722,
+    "player_name": "ふえた",
+    "value": 769,
     "unit": "人時間",
     "metric": "watch_time",
     "period": "regular_season",
@@ -3897,7 +3897,7 @@
     "rank": "33",
     "team_tag": "DFM",
     "player_name": "かなで",
-    "value": 188,
+    "value": 190,
     "unit": "人時間",
     "metric": "watch_time",
     "period": "regular_season",
@@ -3952,7 +3952,7 @@
     "rank": "1",
     "team_tag": "MRG",
     "player_name": "もっちゃま",
-    "value": 17418,
+    "value": 21499,
     "unit": "人時間",
     "metric": "watch_time",
     "period": "aug_early_2026",
@@ -3961,9 +3961,9 @@
   },
   {
     "rank": "2",
-    "team_tag": "MRG",
-    "player_name": "マイト",
-    "value": 15216,
+    "team_tag": "LVH",
+    "player_name": "rikka",
+    "value": 18692,
     "unit": "人時間",
     "metric": "watch_time",
     "period": "aug_early_2026",
@@ -3974,7 +3974,7 @@
     "rank": "3",
     "team_tag": "MRG",
     "player_name": "glory",
-    "value": 12530,
+    "value": 17000,
     "unit": "人時間",
     "metric": "watch_time",
     "period": "aug_early_2026",
@@ -3983,9 +3983,9 @@
   },
   {
     "rank": "4",
-    "team_tag": "LVH",
-    "player_name": "rikka",
-    "value": 9685,
+    "team_tag": "MRG",
+    "player_name": "マイト",
+    "value": 16474,
     "unit": "人時間",
     "metric": "watch_time",
     "period": "aug_early_2026",
@@ -3994,9 +3994,9 @@
   },
   {
     "rank": "5",
-    "team_tag": "RC",
-    "player_name": "つきあかめん",
-    "value": 7411,
+    "team_tag": "MRG",
+    "player_name": "Spicies",
+    "value": 8928,
     "unit": "人時間",
     "metric": "watch_time",
     "period": "aug_early_2026",
@@ -4005,9 +4005,9 @@
   },
   {
     "rank": "6",
-    "team_tag": "MRG",
-    "player_name": "Spicies",
-    "value": 7311,
+    "team_tag": "RC",
+    "player_name": "つきあかめん",
+    "value": 8598,
     "unit": "人時間",
     "metric": "watch_time",
     "period": "aug_early_2026",
@@ -4038,6 +4038,17 @@
   },
   {
     "rank": "9",
+    "team_tag": "CR",
+    "player_name": "Atom",
+    "value": 5099,
+    "unit": "人時間",
+    "metric": "watch_time",
+    "period": "aug_early_2026",
+    "date": "2026-08-07",
+    "source": "shadowverse-reference.com"
+  },
+  {
+    "rank": "10",
     "team_tag": "LVH",
     "player_name": "Era53",
     "value": 4379,
@@ -4048,7 +4059,7 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "10",
+    "rank": "11",
     "team_tag": "MRG",
     "player_name": "Toby",
     "value": 4356,
@@ -4059,21 +4070,10 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "11",
-    "team_tag": "CR",
-    "player_name": "Atom",
-    "value": 3335,
-    "unit": "人時間",
-    "metric": "watch_time",
-    "period": "aug_early_2026",
-    "date": "2026-08-07",
-    "source": "shadowverse-reference.com"
-  },
-  {
     "rank": "12",
     "team_tag": "ZETA",
     "player_name": "ヘイム",
-    "value": 3031,
+    "value": 3259,
     "unit": "人時間",
     "metric": "watch_time",
     "period": "aug_early_2026",
@@ -4084,7 +4084,7 @@
     "rank": "13",
     "team_tag": "LVH",
     "player_name": "Hirobosu",
-    "value": 2429,
+    "value": 3204,
     "unit": "人時間",
     "metric": "watch_time",
     "period": "aug_early_2026",
@@ -4093,9 +4093,9 @@
   },
   {
     "rank": "14",
-    "team_tag": "ZETA",
-    "player_name": "ねぎま",
-    "value": 2390,
+    "team_tag": "LVH",
+    "player_name": "智念せいら",
+    "value": 2734,
     "unit": "人時間",
     "metric": "watch_time",
     "period": "aug_early_2026",
@@ -4104,6 +4104,17 @@
   },
   {
     "rank": "15",
+    "team_tag": "ZETA",
+    "player_name": "ねぎま",
+    "value": 2544,
+    "unit": "人時間",
+    "metric": "watch_time",
+    "period": "aug_early_2026",
+    "date": "2026-08-07",
+    "source": "shadowverse-reference.com"
+  },
+  {
+    "rank": "16",
     "team_tag": "RC",
     "player_name": "たばた",
     "value": 2141,
@@ -4114,7 +4125,7 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "16",
+    "rank": "17",
     "team_tag": "ZETA",
     "player_name": "CQCQ",
     "value": 1644,
@@ -4125,7 +4136,18 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "17",
+    "rank": "18",
+    "team_tag": "RC",
+    "player_name": "あぐのむ",
+    "value": 1617,
+    "unit": "人時間",
+    "metric": "watch_time",
+    "period": "aug_early_2026",
+    "date": "2026-08-07",
+    "source": "shadowverse-reference.com"
+  },
+  {
+    "rank": "19",
     "team_tag": "RC",
     "player_name": "拓海",
     "value": 1472,
@@ -4136,10 +4158,10 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "18",
+    "rank": "20",
     "team_tag": "RID",
     "player_name": "Stylish_deko",
-    "value": 1388,
+    "value": 1423,
     "unit": "人時間",
     "metric": "watch_time",
     "period": "aug_early_2026",
@@ -4147,18 +4169,7 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "19",
-    "team_tag": "LVH",
-    "player_name": "智念せいら",
-    "value": 1350,
-    "unit": "人時間",
-    "metric": "watch_time",
-    "period": "aug_early_2026",
-    "date": "2026-08-07",
-    "source": "shadowverse-reference.com"
-  },
-  {
-    "rank": "20",
+    "rank": "21",
     "team_tag": "ZETA",
     "player_name": "TBT",
     "value": 1244,
@@ -4169,21 +4180,10 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "21",
-    "team_tag": "RC",
-    "player_name": "あぐのむ",
-    "value": 1066,
-    "unit": "人時間",
-    "metric": "watch_time",
-    "period": "aug_early_2026",
-    "date": "2026-08-07",
-    "source": "shadowverse-reference.com"
-  },
-  {
     "rank": "22",
     "team_tag": "RID",
     "player_name": "折り紙",
-    "value": 971,
+    "value": 1179,
     "unit": "人時間",
     "metric": "watch_time",
     "period": "aug_early_2026",
@@ -4194,7 +4194,7 @@
     "rank": "23",
     "team_tag": "RID",
     "player_name": "Chappy",
-    "value": 700,
+    "value": 859,
     "unit": "人時間",
     "metric": "watch_time",
     "period": "aug_early_2026",
@@ -4291,9 +4291,9 @@
   },
   {
     "rank": "32",
-    "team_tag": "DFM",
-    "player_name": "かなで",
-    "value": 47,
+    "team_tag": "CR",
+    "player_name": "空白",
+    "value": 91,
     "unit": "人時間",
     "metric": "watch_time",
     "period": "aug_early_2026",
@@ -4302,6 +4302,17 @@
   },
   {
     "rank": "33",
+    "team_tag": "DFM",
+    "player_name": "かなで",
+    "value": 48,
+    "unit": "人時間",
+    "metric": "watch_time",
+    "period": "aug_early_2026",
+    "date": "2026-08-07",
+    "source": "shadowverse-reference.com"
+  },
+  {
+    "rank": "34",
     "team_tag": "VL",
     "player_name": "Terarina",
     "value": 4,
@@ -4312,18 +4323,7 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "34T",
-    "team_tag": "CR",
-    "player_name": "空白",
-    "value": 0,
-    "unit": "人時間",
-    "metric": "watch_time",
-    "period": "aug_early_2026",
-    "date": "2026-08-07",
-    "source": "shadowverse-reference.com"
-  },
-  {
-    "rank": "34T",
+    "rank": "35T",
     "team_tag": "VL",
     "player_name": "Mishadow51",
     "value": 0,
@@ -4334,7 +4334,7 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "34T",
+    "rank": "35T",
     "team_tag": "RID",
     "player_name": "山田レクイエム",
     "value": 0,
@@ -4345,7 +4345,7 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "34T",
+    "rank": "35T",
     "team_tag": "RID",
     "player_name": "ぱんさく",
     "value": 0,
@@ -6315,6 +6315,17 @@
   },
   {
     "rank": "5",
+    "team_tag": "DFM",
+    "player_name": "ユーリ",
+    "value": 25616,
+    "unit": "回",
+    "metric": "video_view_count",
+    "period": "regular_season",
+    "date": "2026-08-07",
+    "source": "shadowverse-reference.com"
+  },
+  {
+    "rank": "6",
     "team_tag": "RC",
     "player_name": "つきあかめん",
     "value": 6154,
@@ -6325,7 +6336,7 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "6",
+    "rank": "7",
     "team_tag": "CR",
     "player_name": "ふぇぐ",
     "value": 3492,
@@ -6336,7 +6347,7 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "7",
+    "rank": "8",
     "team_tag": "CR",
     "player_name": "ふえた",
     "value": 3025,
@@ -6347,7 +6358,18 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "8T",
+    "rank": "9",
+    "team_tag": "CR",
+    "player_name": "空白",
+    "value": 333,
+    "unit": "回",
+    "metric": "video_view_count",
+    "period": "regular_season",
+    "date": "2026-08-07",
+    "source": "shadowverse-reference.com"
+  },
+  {
+    "rank": "10T",
     "team_tag": "CR",
     "player_name": "Atom",
     "value": 0,
@@ -6358,7 +6380,7 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "8T",
+    "rank": "10T",
     "team_tag": "CR",
     "player_name": "Winter",
     "value": 0,
@@ -6369,18 +6391,7 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "8T",
-    "team_tag": "CR",
-    "player_name": "空白",
-    "value": 0,
-    "unit": "回",
-    "metric": "video_view_count",
-    "period": "regular_season",
-    "date": "2026-08-07",
-    "source": "shadowverse-reference.com"
-  },
-  {
-    "rank": "8T",
+    "rank": "10T",
     "team_tag": "ZETA",
     "player_name": "CQCQ",
     "value": 0,
@@ -6391,7 +6402,7 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "8T",
+    "rank": "10T",
     "team_tag": "ZETA",
     "player_name": "ヘイム",
     "value": 0,
@@ -6402,7 +6413,7 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "8T",
+    "rank": "10T",
     "team_tag": "ZETA",
     "player_name": "TBT",
     "value": 0,
@@ -6413,7 +6424,7 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "8T",
+    "rank": "10T",
     "team_tag": "ZETA",
     "player_name": "ねぎま",
     "value": 0,
@@ -6424,7 +6435,7 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "8T",
+    "rank": "10T",
     "team_tag": "DFM",
     "player_name": "ミル",
     "value": 0,
@@ -6435,18 +6446,7 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "8T",
-    "team_tag": "DFM",
-    "player_name": "ユーリ",
-    "value": 0,
-    "unit": "回",
-    "metric": "video_view_count",
-    "period": "regular_season",
-    "date": "2026-08-07",
-    "source": "shadowverse-reference.com"
-  },
-  {
-    "rank": "8T",
+    "rank": "10T",
     "team_tag": "DFM",
     "player_name": "かなで",
     "value": 0,
@@ -6457,7 +6457,7 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "8T",
+    "rank": "10T",
     "team_tag": "DFM",
     "player_name": "MingiGod",
     "value": 0,
@@ -6468,7 +6468,7 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "8T",
+    "rank": "10T",
     "team_tag": "VL",
     "player_name": "Mishadow51",
     "value": 0,
@@ -6479,7 +6479,7 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "8T",
+    "rank": "10T",
     "team_tag": "VL",
     "player_name": "Terarina",
     "value": 0,
@@ -6490,7 +6490,7 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "8T",
+    "rank": "10T",
     "team_tag": "VL",
     "player_name": "monakawan",
     "value": 0,
@@ -6501,7 +6501,7 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "8T",
+    "rank": "10T",
     "team_tag": "VL",
     "player_name": "まっつ",
     "value": 0,
@@ -6512,7 +6512,7 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "8T",
+    "rank": "10T",
     "team_tag": "MRG",
     "player_name": "glory",
     "value": 0,
@@ -6523,7 +6523,7 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "8T",
+    "rank": "10T",
     "team_tag": "MRG",
     "player_name": "Toby",
     "value": 0,
@@ -6534,7 +6534,7 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "8T",
+    "rank": "10T",
     "team_tag": "MRG",
     "player_name": "もっちゃま",
     "value": 0,
@@ -6545,7 +6545,7 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "8T",
+    "rank": "10T",
     "team_tag": "RC",
     "player_name": "あぐのむ",
     "value": 0,
@@ -6556,7 +6556,7 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "8T",
+    "rank": "10T",
     "team_tag": "RC",
     "player_name": "ぱらちゃん",
     "value": 0,
@@ -6567,7 +6567,7 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "8T",
+    "rank": "10T",
     "team_tag": "RC",
     "player_name": "拓海",
     "value": 0,
@@ -6578,7 +6578,7 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "8T",
+    "rank": "10T",
     "team_tag": "RID",
     "player_name": "折り紙",
     "value": 0,
@@ -6589,7 +6589,7 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "8T",
+    "rank": "10T",
     "team_tag": "RID",
     "player_name": "山田レクイエム",
     "value": 0,
@@ -6600,7 +6600,7 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "8T",
+    "rank": "10T",
     "team_tag": "RID",
     "player_name": "Chappy",
     "value": 0,
@@ -6611,7 +6611,7 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "8T",
+    "rank": "10T",
     "team_tag": "RID",
     "player_name": "ぱんさく",
     "value": 0,
@@ -6622,7 +6622,7 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "8T",
+    "rank": "10T",
     "team_tag": "RID",
     "player_name": "Stylish_deko",
     "value": 0,
@@ -6633,7 +6633,7 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "8T",
+    "rank": "10T",
     "team_tag": "LVH",
     "player_name": "Era53",
     "value": 0,
@@ -6644,7 +6644,7 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "8T",
+    "rank": "10T",
     "team_tag": "LVH",
     "player_name": "rikka",
     "value": 0,
@@ -6655,7 +6655,7 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "8T",
+    "rank": "10T",
     "team_tag": "LVH",
     "player_name": "だーよね",
     "value": 0,
@@ -6666,7 +6666,7 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "8T",
+    "rank": "10T",
     "team_tag": "LVH",
     "player_name": "Hirobosu",
     "value": 0,
@@ -7129,6 +7129,17 @@
   },
   {
     "rank": "5",
+    "team_tag": "DFM",
+    "player_name": "ユーリ",
+    "value": 25616,
+    "unit": "回",
+    "metric": "video_view_count",
+    "period": "jul_late_2026",
+    "date": "2026-08-07",
+    "source": "shadowverse-reference.com"
+  },
+  {
+    "rank": "6",
     "team_tag": "RC",
     "player_name": "つきあかめん",
     "value": 6154,
@@ -7139,7 +7150,7 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "6",
+    "rank": "7",
     "team_tag": "CR",
     "player_name": "ふぇぐ",
     "value": 3492,
@@ -7150,7 +7161,7 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "7",
+    "rank": "8",
     "team_tag": "CR",
     "player_name": "ふえた",
     "value": 3025,
@@ -7161,7 +7172,18 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "8T",
+    "rank": "9",
+    "team_tag": "CR",
+    "player_name": "空白",
+    "value": 333,
+    "unit": "回",
+    "metric": "video_view_count",
+    "period": "jul_late_2026",
+    "date": "2026-08-07",
+    "source": "shadowverse-reference.com"
+  },
+  {
+    "rank": "10T",
     "team_tag": "CR",
     "player_name": "Atom",
     "value": 0,
@@ -7172,7 +7194,7 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "8T",
+    "rank": "10T",
     "team_tag": "CR",
     "player_name": "Winter",
     "value": 0,
@@ -7183,18 +7205,7 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "8T",
-    "team_tag": "CR",
-    "player_name": "空白",
-    "value": 0,
-    "unit": "回",
-    "metric": "video_view_count",
-    "period": "jul_late_2026",
-    "date": "2026-08-07",
-    "source": "shadowverse-reference.com"
-  },
-  {
-    "rank": "8T",
+    "rank": "10T",
     "team_tag": "ZETA",
     "player_name": "CQCQ",
     "value": 0,
@@ -7205,7 +7216,7 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "8T",
+    "rank": "10T",
     "team_tag": "ZETA",
     "player_name": "ヘイム",
     "value": 0,
@@ -7216,7 +7227,7 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "8T",
+    "rank": "10T",
     "team_tag": "ZETA",
     "player_name": "TBT",
     "value": 0,
@@ -7227,7 +7238,7 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "8T",
+    "rank": "10T",
     "team_tag": "ZETA",
     "player_name": "ねぎま",
     "value": 0,
@@ -7238,7 +7249,7 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "8T",
+    "rank": "10T",
     "team_tag": "DFM",
     "player_name": "ミル",
     "value": 0,
@@ -7249,18 +7260,7 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "8T",
-    "team_tag": "DFM",
-    "player_name": "ユーリ",
-    "value": 0,
-    "unit": "回",
-    "metric": "video_view_count",
-    "period": "jul_late_2026",
-    "date": "2026-08-07",
-    "source": "shadowverse-reference.com"
-  },
-  {
-    "rank": "8T",
+    "rank": "10T",
     "team_tag": "DFM",
     "player_name": "かなで",
     "value": 0,
@@ -7271,7 +7271,7 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "8T",
+    "rank": "10T",
     "team_tag": "DFM",
     "player_name": "MingiGod",
     "value": 0,
@@ -7282,7 +7282,7 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "8T",
+    "rank": "10T",
     "team_tag": "VL",
     "player_name": "Mishadow51",
     "value": 0,
@@ -7293,7 +7293,7 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "8T",
+    "rank": "10T",
     "team_tag": "VL",
     "player_name": "Terarina",
     "value": 0,
@@ -7304,7 +7304,7 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "8T",
+    "rank": "10T",
     "team_tag": "VL",
     "player_name": "monakawan",
     "value": 0,
@@ -7315,7 +7315,7 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "8T",
+    "rank": "10T",
     "team_tag": "VL",
     "player_name": "まっつ",
     "value": 0,
@@ -7326,7 +7326,7 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "8T",
+    "rank": "10T",
     "team_tag": "MRG",
     "player_name": "glory",
     "value": 0,
@@ -7337,7 +7337,7 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "8T",
+    "rank": "10T",
     "team_tag": "MRG",
     "player_name": "Toby",
     "value": 0,
@@ -7348,7 +7348,7 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "8T",
+    "rank": "10T",
     "team_tag": "MRG",
     "player_name": "もっちゃま",
     "value": 0,
@@ -7359,7 +7359,7 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "8T",
+    "rank": "10T",
     "team_tag": "RC",
     "player_name": "あぐのむ",
     "value": 0,
@@ -7370,7 +7370,7 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "8T",
+    "rank": "10T",
     "team_tag": "RC",
     "player_name": "ぱらちゃん",
     "value": 0,
@@ -7381,7 +7381,7 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "8T",
+    "rank": "10T",
     "team_tag": "RC",
     "player_name": "拓海",
     "value": 0,
@@ -7392,7 +7392,7 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "8T",
+    "rank": "10T",
     "team_tag": "RID",
     "player_name": "折り紙",
     "value": 0,
@@ -7403,7 +7403,7 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "8T",
+    "rank": "10T",
     "team_tag": "RID",
     "player_name": "山田レクイエム",
     "value": 0,
@@ -7414,7 +7414,7 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "8T",
+    "rank": "10T",
     "team_tag": "RID",
     "player_name": "Chappy",
     "value": 0,
@@ -7425,7 +7425,7 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "8T",
+    "rank": "10T",
     "team_tag": "RID",
     "player_name": "ぱんさく",
     "value": 0,
@@ -7436,7 +7436,7 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "8T",
+    "rank": "10T",
     "team_tag": "RID",
     "player_name": "Stylish_deko",
     "value": 0,
@@ -7447,7 +7447,7 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "8T",
+    "rank": "10T",
     "team_tag": "LVH",
     "player_name": "Era53",
     "value": 0,
@@ -7458,7 +7458,7 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "8T",
+    "rank": "10T",
     "team_tag": "LVH",
     "player_name": "rikka",
     "value": 0,
@@ -7469,7 +7469,7 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "8T",
+    "rank": "10T",
     "team_tag": "LVH",
     "player_name": "だーよね",
     "value": 0,
@@ -7480,7 +7480,7 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "8T",
+    "rank": "10T",
     "team_tag": "LVH",
     "player_name": "Hirobosu",
     "value": 0,
@@ -9119,7 +9119,18 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "12T",
+    "rank": "7T",
+    "team_tag": "RID",
+    "player_name": "折り紙",
+    "value": 1,
+    "unit": "本",
+    "metric": "video_upload_count",
+    "period": "regular_season",
+    "date": "2026-08-07",
+    "source": "shadowverse-reference.com"
+  },
+  {
+    "rank": "13T",
     "team_tag": "CR",
     "player_name": "Atom",
     "value": 0,
@@ -9130,7 +9141,7 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "12T",
+    "rank": "13T",
     "team_tag": "CR",
     "player_name": "Winter",
     "value": 0,
@@ -9141,7 +9152,7 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "12T",
+    "rank": "13T",
     "team_tag": "ZETA",
     "player_name": "CQCQ",
     "value": 0,
@@ -9152,7 +9163,7 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "12T",
+    "rank": "13T",
     "team_tag": "ZETA",
     "player_name": "ヘイム",
     "value": 0,
@@ -9163,7 +9174,7 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "12T",
+    "rank": "13T",
     "team_tag": "ZETA",
     "player_name": "TBT",
     "value": 0,
@@ -9174,7 +9185,7 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "12T",
+    "rank": "13T",
     "team_tag": "ZETA",
     "player_name": "ねぎま",
     "value": 0,
@@ -9185,7 +9196,7 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "12T",
+    "rank": "13T",
     "team_tag": "DFM",
     "player_name": "ミル",
     "value": 0,
@@ -9196,7 +9207,7 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "12T",
+    "rank": "13T",
     "team_tag": "DFM",
     "player_name": "かなで",
     "value": 0,
@@ -9207,7 +9218,7 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "12T",
+    "rank": "13T",
     "team_tag": "VL",
     "player_name": "Mishadow51",
     "value": 0,
@@ -9218,7 +9229,7 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "12T",
+    "rank": "13T",
     "team_tag": "VL",
     "player_name": "Terarina",
     "value": 0,
@@ -9229,7 +9240,7 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "12T",
+    "rank": "13T",
     "team_tag": "VL",
     "player_name": "monakawan",
     "value": 0,
@@ -9240,7 +9251,7 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "12T",
+    "rank": "13T",
     "team_tag": "VL",
     "player_name": "まっつ",
     "value": 0,
@@ -9251,7 +9262,7 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "12T",
+    "rank": "13T",
     "team_tag": "MRG",
     "player_name": "glory",
     "value": 0,
@@ -9262,7 +9273,7 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "12T",
+    "rank": "13T",
     "team_tag": "MRG",
     "player_name": "Toby",
     "value": 0,
@@ -9273,7 +9284,7 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "12T",
+    "rank": "13T",
     "team_tag": "MRG",
     "player_name": "もっちゃま",
     "value": 0,
@@ -9284,7 +9295,7 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "12T",
+    "rank": "13T",
     "team_tag": "RC",
     "player_name": "ぱらちゃん",
     "value": 0,
@@ -9295,7 +9306,7 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "12T",
+    "rank": "13T",
     "team_tag": "RC",
     "player_name": "拓海",
     "value": 0,
@@ -9306,18 +9317,7 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "12T",
-    "team_tag": "RID",
-    "player_name": "折り紙",
-    "value": 0,
-    "unit": "本",
-    "metric": "video_upload_count",
-    "period": "regular_season",
-    "date": "2026-08-07",
-    "source": "shadowverse-reference.com"
-  },
-  {
-    "rank": "12T",
+    "rank": "13T",
     "team_tag": "RID",
     "player_name": "山田レクイエム",
     "value": 0,
@@ -9328,7 +9328,7 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "12T",
+    "rank": "13T",
     "team_tag": "RID",
     "player_name": "Chappy",
     "value": 0,
@@ -9339,7 +9339,7 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "12T",
+    "rank": "13T",
     "team_tag": "RID",
     "player_name": "ぱんさく",
     "value": 0,
@@ -9350,7 +9350,7 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "12T",
+    "rank": "13T",
     "team_tag": "RID",
     "player_name": "Stylish_deko",
     "value": 0,
@@ -9361,7 +9361,7 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "12T",
+    "rank": "13T",
     "team_tag": "LVH",
     "player_name": "Era53",
     "value": 0,
@@ -9372,7 +9372,7 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "12T",
+    "rank": "13T",
     "team_tag": "LVH",
     "player_name": "rikka",
     "value": 0,
@@ -9383,7 +9383,7 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "12T",
+    "rank": "13T",
     "team_tag": "LVH",
     "player_name": "だーよね",
     "value": 0,
@@ -9394,7 +9394,7 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "12T",
+    "rank": "13T",
     "team_tag": "LVH",
     "player_name": "Hirobosu",
     "value": 0,
@@ -9438,7 +9438,18 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "4T",
+    "rank": "1T",
+    "team_tag": "RID",
+    "player_name": "折り紙",
+    "value": 1,
+    "unit": "本",
+    "metric": "video_upload_count",
+    "period": "aug_early_2026",
+    "date": "2026-08-07",
+    "source": "shadowverse-reference.com"
+  },
+  {
+    "rank": "5T",
     "team_tag": "CR",
     "player_name": "Atom",
     "value": 0,
@@ -9449,7 +9460,7 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "4T",
+    "rank": "5T",
     "team_tag": "CR",
     "player_name": "ふえた",
     "value": 0,
@@ -9460,7 +9471,7 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "4T",
+    "rank": "5T",
     "team_tag": "CR",
     "player_name": "Winter",
     "value": 0,
@@ -9471,7 +9482,7 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "4T",
+    "rank": "5T",
     "team_tag": "CR",
     "player_name": "空白",
     "value": 0,
@@ -9482,7 +9493,7 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "4T",
+    "rank": "5T",
     "team_tag": "CR",
     "player_name": "ふぇぐ",
     "value": 0,
@@ -9493,7 +9504,7 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "4T",
+    "rank": "5T",
     "team_tag": "ZETA",
     "player_name": "CQCQ",
     "value": 0,
@@ -9504,7 +9515,7 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "4T",
+    "rank": "5T",
     "team_tag": "ZETA",
     "player_name": "ヘイム",
     "value": 0,
@@ -9515,7 +9526,7 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "4T",
+    "rank": "5T",
     "team_tag": "ZETA",
     "player_name": "TBT",
     "value": 0,
@@ -9526,7 +9537,7 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "4T",
+    "rank": "5T",
     "team_tag": "ZETA",
     "player_name": "ねぎま",
     "value": 0,
@@ -9537,7 +9548,7 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "4T",
+    "rank": "5T",
     "team_tag": "DFM",
     "player_name": "ミル",
     "value": 0,
@@ -9548,7 +9559,7 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "4T",
+    "rank": "5T",
     "team_tag": "DFM",
     "player_name": "ユーリ",
     "value": 0,
@@ -9559,7 +9570,7 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "4T",
+    "rank": "5T",
     "team_tag": "DFM",
     "player_name": "かなで",
     "value": 0,
@@ -9570,7 +9581,7 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "4T",
+    "rank": "5T",
     "team_tag": "VL",
     "player_name": "Mishadow51",
     "value": 0,
@@ -9581,7 +9592,7 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "4T",
+    "rank": "5T",
     "team_tag": "VL",
     "player_name": "Terarina",
     "value": 0,
@@ -9592,7 +9603,7 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "4T",
+    "rank": "5T",
     "team_tag": "VL",
     "player_name": "monakawan",
     "value": 0,
@@ -9603,7 +9614,7 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "4T",
+    "rank": "5T",
     "team_tag": "VL",
     "player_name": "まっつ",
     "value": 0,
@@ -9614,7 +9625,7 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "4T",
+    "rank": "5T",
     "team_tag": "MRG",
     "player_name": "glory",
     "value": 0,
@@ -9625,7 +9636,7 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "4T",
+    "rank": "5T",
     "team_tag": "MRG",
     "player_name": "Toby",
     "value": 0,
@@ -9636,7 +9647,7 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "4T",
+    "rank": "5T",
     "team_tag": "MRG",
     "player_name": "Spicies",
     "value": 0,
@@ -9647,7 +9658,7 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "4T",
+    "rank": "5T",
     "team_tag": "MRG",
     "player_name": "もっちゃま",
     "value": 0,
@@ -9658,7 +9669,7 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "4T",
+    "rank": "5T",
     "team_tag": "RC",
     "player_name": "たばた",
     "value": 0,
@@ -9669,7 +9680,7 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "4T",
+    "rank": "5T",
     "team_tag": "RC",
     "player_name": "ぱらちゃん",
     "value": 0,
@@ -9680,7 +9691,7 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "4T",
+    "rank": "5T",
     "team_tag": "RC",
     "player_name": "拓海",
     "value": 0,
@@ -9691,7 +9702,7 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "4T",
+    "rank": "5T",
     "team_tag": "RC",
     "player_name": "つきあかめん",
     "value": 0,
@@ -9702,18 +9713,7 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "4T",
-    "team_tag": "RID",
-    "player_name": "折り紙",
-    "value": 0,
-    "unit": "本",
-    "metric": "video_upload_count",
-    "period": "aug_early_2026",
-    "date": "2026-08-07",
-    "source": "shadowverse-reference.com"
-  },
-  {
-    "rank": "4T",
+    "rank": "5T",
     "team_tag": "RID",
     "player_name": "山田レクイエム",
     "value": 0,
@@ -9724,7 +9724,7 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "4T",
+    "rank": "5T",
     "team_tag": "RID",
     "player_name": "Chappy",
     "value": 0,
@@ -9735,7 +9735,7 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "4T",
+    "rank": "5T",
     "team_tag": "RID",
     "player_name": "ぱんさく",
     "value": 0,
@@ -9746,7 +9746,7 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "4T",
+    "rank": "5T",
     "team_tag": "RID",
     "player_name": "Stylish_deko",
     "value": 0,
@@ -9757,7 +9757,7 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "4T",
+    "rank": "5T",
     "team_tag": "LVH",
     "player_name": "Era53",
     "value": 0,
@@ -9768,7 +9768,7 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "4T",
+    "rank": "5T",
     "team_tag": "LVH",
     "player_name": "rikka",
     "value": 0,
@@ -9779,7 +9779,7 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "4T",
+    "rank": "5T",
     "team_tag": "LVH",
     "player_name": "だーよね",
     "value": 0,
@@ -9790,7 +9790,7 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "4T",
+    "rank": "5T",
     "team_tag": "LVH",
     "player_name": "Hirobosu",
     "value": 0,
@@ -9801,7 +9801,7 @@
     "source": "shadowverse-reference.com"
   },
   {
-    "rank": "4T",
+    "rank": "5T",
     "team_tag": "LVH",
     "player_name": "智念せいら",
     "value": 0,
